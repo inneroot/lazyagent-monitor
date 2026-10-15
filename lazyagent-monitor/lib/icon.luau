@@ -16,6 +16,7 @@
 local M = {}
 
 local FALLBACK_ACTIVE = "#22c55e"
+local FALLBACK_SECONDARY = "#8b5cf6"
 
 local sourceCache = {} -- raw SVG content keyed by source path
 local tintCache = {}   -- tinted file path keyed by "<source>|<color>"
@@ -65,6 +66,12 @@ function M.activeHex()
 	return noctalia.getColor("primary") or FALLBACK_ACTIVE
 end
 
+-- Secondary color as a hex value, for baking into SVGs (used when an agent is
+-- waiting). Falls back to a violet if the palette has no "secondary" role.
+function M.secondaryHex()
+	return noctalia.getColor("secondary") or FALLBACK_SECONDARY
+end
+
 -- Returns the path of a copy of `sourcePath` with every color replaced by
 -- `color`. The copy is cached in the plugin data dir and reused across renders.
 -- Returns nil when the source can't be read or the file can't be written.
@@ -112,6 +119,19 @@ function M.tintedPath(sourcePath, color)
 		return path
 	end
 	return nil
+end
+
+-- Monochrome text symbol per session activity (kept in the same text style as
+-- AGENT_ICONS so it takes the row's theme color). Unknown statuses fall back to
+-- a filled dot.
+local STATUS_SYMBOLS = {
+	idle = "\u{25CB}", waiting = "\u{29D7}", thinking = "\u{2726}",
+	compacting = "\u{25D2}", reading = "\u{25A4}", writing = "\u{270E}",
+	running = "\u{25B6}", searching = "\u{2315}", browsing = "\u{25C8}",
+	spawning = "\u{271A}",
+}
+function M.statusSymbol(status)
+	return STATUS_SYMBOLS[status] or "\u{2022}"
 end
 
 -- Resolves the user-configured icon from this entry's own settings (icon_glyph,

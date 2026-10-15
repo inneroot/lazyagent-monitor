@@ -105,9 +105,7 @@ local function render()
 	-- Build the header icon node; a user-configured icon (custom SVG tinted to the
 	-- active color, or a custom glyph) is used only for the connected state, so the
 	-- disconnected / no-data states keep their semantic glyphs.
-	local function headerIcon(active, defaultGlyph)
-		local roleColor = active and COLOR_ACTIVE or COLOR_IDLE
-		local bakeColor = active and icon.activeHex() or COLOR_IDLE
+	local function headerIcon(roleColor, bakeColor, defaultGlyph)
 		local configured = icon.resolveIcon(bakeColor)
 		if configured ~= nil and configured.image ~= nil then
 			return ui.image({ path = configured.image, width = 18, height = 18 })
@@ -119,8 +117,23 @@ local function render()
 	local headerNode, headerColor, headerText
 	if status == "connected" and snap ~= nil and snap.stats ~= nil then
 		local hasActive = snap.stats.active > 0
-		headerColor = hasActive and COLOR_ACTIVE or COLOR_IDLE
-		headerNode = headerIcon(hasActive, hasActive and GLYPH_ACTIVE or GLYPH_IDLE)
+		local hasWaiting = false
+		for _, s in ipairs(snap.sessions or {}) do
+			if s.activity == "waiting" then
+				hasWaiting = true
+				break
+			end
+		end
+		local roleColor, bakeColor, defaultGlyph
+		if hasWaiting then
+			roleColor, bakeColor, defaultGlyph = "secondary", icon.secondaryHex(), GLYPH_ACTIVE
+		elseif hasActive then
+			roleColor, bakeColor, defaultGlyph = COLOR_ACTIVE, icon.activeHex(), GLYPH_ACTIVE
+		else
+			roleColor, bakeColor, defaultGlyph = COLOR_IDLE, COLOR_IDLE, GLYPH_IDLE
+		end
+		headerColor = roleColor
+		headerNode = headerIcon(roleColor, bakeColor, defaultGlyph)
 		headerText = string.format("%d/%d", snap.stats.active, snap.stats.total)
 	elseif status == "disconnected" then
 		headerNode = ui.glyph({ name = GLYPH_DOWN, size = 18, color = COLOR_DOWN })
@@ -157,6 +170,7 @@ local function render()
 			table.insert(children, ui.row({ gap = 8, align = "center" }, {
 				ui.label({ text = agentIcon(s.agent), fontSize = 16, fontWeight = "bold", color = color }),
 				ui.label({ text = act, fontWeight = "bold", color = color }),
+				ui.label({ text = icon.statusSymbol(act), fontSize = 16, color = color }),
 			}))
 		end
 	end

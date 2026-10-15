@@ -144,7 +144,7 @@ local function renderSnapshot(snap)
 	else
 		for _, s in ipairs(sessions) do
 			local act = s.activity ~= nil and s.activity ~= "" and s.activity or "idle"
-			table.insert(rows, { agentIcon(s.agent), act })
+			table.insert(rows, { agentIcon(s.agent), act .. " " .. icon.statusSymbol(act) })
 		end
 	end
 	barWidget.setTooltip(rows)

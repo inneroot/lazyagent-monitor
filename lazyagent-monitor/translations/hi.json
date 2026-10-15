@@ -36,5 +36,7 @@
 	"settings.icon_colorize.label": "आइकन को थीम रंग से रंगें",
 	"settings.icon_colorize.description": "सक्रिय होने पर कस्टम SVG को थीम के प्राथमिक रंग से फिर से रंगें। बंद करने पर SVG के अपने रंग दिखते हैं।",
 	"settings.compact.label": "कॉम्पैक्ट मोड",
-	"settings.compact.description": "सत्र-वार विवरण के बिना केवल आइकन और active/total काउंटर दिखाएँ।"
+	"settings.compact.description": "सत्र-वार विवरण के बिना केवल आइकन और active/total काउंटर दिखाएँ।",
+	"settings.icon_scale.label": "आइकन आकार",
+	"settings.icon_scale.description": "डिफ़ॉल्ट (काउंटर टेक्स्ट के सापेक्ष) के प्रतिशत के रूप में आइकन आकार।"
 }

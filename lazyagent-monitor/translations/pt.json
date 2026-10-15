@@ -36,5 +36,7 @@
 	"settings.icon_colorize.label": "Tingir o ícone com a cor do tema",
 	"settings.icon_colorize.description": "Recolore o SVG personalizado com a cor primária do tema quando ativo. Desative para mostrar as cores próprias do SVG.",
 	"settings.compact.label": "Modo compacto",
-	"settings.compact.description": "Mostrar apenas o ícone e o contador ativos/total, sem o detalhamento por sessão."
+	"settings.compact.description": "Mostrar apenas o ícone e o contador ativos/total, sem o detalhamento por sessão.",
+	"settings.icon_scale.label": "Tamanho do ícone",
+	"settings.icon_scale.description": "Tamanho do ícone em porcentagem do padrão (relativo ao texto do contador)."
 }

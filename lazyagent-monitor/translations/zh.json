@@ -36,5 +36,7 @@
 	"settings.icon_colorize.label": "用主题色为图标着色",
 	"settings.icon_colorize.description": "激活时用主题的主色重染自定义 SVG。关闭则显示 SVG 自身的颜色。",
 	"settings.compact.label": "紧凑模式",
-	"settings.compact.description": "仅显示图标和 active/total 计数器，不显示按会话的明细。"
+	"settings.compact.description": "仅显示图标和 active/total 计数器，不显示按会话的明细。",
+	"settings.icon_scale.label": "图标大小",
+	"settings.icon_scale.description": "图标大小按默认值的百分比（相对于计数器文本）。"
 }

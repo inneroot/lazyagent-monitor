@@ -121,6 +121,16 @@ entry = "desktop_widget.luau"
   description_key = "settings.compact.description"
   default         = false
 
+  [[desktop_widget.setting]]
+  key             = "icon_scale"
+  type            = "int"
+  label_key       = "settings.icon_scale.label"
+  description_key = "settings.icon_scale.description"
+  default         = 100
+  min             = 50
+  max             = 200
+  step            = 5
+
 [[service]]
 id    = "bridge"
 entry = "service.luau"

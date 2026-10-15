@@ -102,16 +102,19 @@ local function render()
 	local status = state.get("status")
 	local snap = state.get("snapshot")
 
+	local iconScale = tonumber(noctalia.getConfig("icon_scale")) or 100
+	local iconSize = 18 * (iconScale / 100)
+
 	-- Build the header icon node; a user-configured icon (custom SVG tinted to the
 	-- active color, or a custom glyph) is used only for the connected state, so the
 	-- disconnected / no-data states keep their semantic glyphs.
 	local function headerIcon(roleColor, bakeColor, defaultGlyph)
 		local configured = icon.resolveIcon(bakeColor)
 		if configured ~= nil and configured.image ~= nil then
-			return ui.image({ path = configured.image, width = 18, height = 18 })
+			return ui.image({ path = configured.image, width = iconSize, height = iconSize })
 		end
 		local glyph = configured ~= nil and configured.glyph or defaultGlyph
-		return ui.glyph({ name = glyph, size = 18, color = roleColor })
+		return ui.glyph({ name = glyph, size = iconSize, color = roleColor })
 	end
 
 	local headerNode, headerColor, headerText
@@ -136,11 +139,11 @@ local function render()
 		headerNode = headerIcon(roleColor, bakeColor, defaultGlyph)
 		headerText = string.format("%d/%d", snap.stats.active, snap.stats.total)
 	elseif status == "disconnected" then
-		headerNode = ui.glyph({ name = GLYPH_DOWN, size = 18, color = COLOR_DOWN })
+		headerNode = ui.glyph({ name = GLYPH_DOWN, size = iconSize, color = COLOR_DOWN })
 		headerColor = COLOR_DOWN
 		headerText = "?"
 	else
-		headerNode = headerIcon(false, GLYPH_IDLE)
+		headerNode = headerIcon(COLOR_IDLE, COLOR_IDLE, GLYPH_IDLE)
 		headerColor = COLOR_IDLE
 		headerText = "\u{2014}"
 	end

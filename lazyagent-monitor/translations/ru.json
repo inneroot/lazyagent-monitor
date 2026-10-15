@@ -36,5 +36,7 @@
 	"settings.icon_colorize.label": "Окрасить иконку в цвет темы",
 	"settings.icon_colorize.description": "Перекрасить свою SVG в цвет primary темы, когда активно. Выкл. — показывать собственные цвета SVG.",
 	"settings.compact.label": "Компактный режим",
-	"settings.compact.description": "Показывать только иконку и счётчик active/total, без разбивки по сессиям."
+	"settings.compact.description": "Показывать только иконку и счётчик active/total, без разбивки по сессиям.",
+	"settings.icon_scale.label": "Размер иконки",
+	"settings.icon_scale.description": "Размер иконки в процентах от стандартного (относительно текста счётчика)."
 }

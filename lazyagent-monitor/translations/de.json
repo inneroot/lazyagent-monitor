@@ -36,5 +36,7 @@
 	"settings.icon_colorize.label": "Icon mit Themenfarbe färben",
 	"settings.icon_colorize.description": "Die eigene SVG bei Aktivität in die Primärfarbe des Themas färben. Aus, um die eigenen Farben der SVG zu zeigen.",
 	"settings.compact.label": "Kompakter Modus",
-	"settings.compact.description": "Nur das Symbol und den Zähler active/total anzeigen, ohne Aufschlüsselung nach Sitzungen."
+	"settings.compact.description": "Nur das Symbol und den Zähler active/total anzeigen, ohne Aufschlüsselung nach Sitzungen.",
+	"settings.icon_scale.label": "Symbolgröße",
+	"settings.icon_scale.description": "Symbolgröße in Prozent der Standardgröße (relativ zum Zählertext)."
 }

@@ -36,5 +36,7 @@
 	"settings.icon_colorize.label": "テーマ色でアイコンを着色",
 	"settings.icon_colorize.description": "アクティブ時にテーマのプライマリ色でカスタム SVG を再配色します。オフで SVG 自身の色を表示します。",
 	"settings.compact.label": "コンパクトモード",
-	"settings.compact.description": "セッションごとの内訳を表示せず、アイコンと active/total カウンターだけを表示します。"
+	"settings.compact.description": "セッションごとの内訳を表示せず、アイコンと active/total カウンターだけを表示します。",
+	"settings.icon_scale.label": "アイコンのサイズ",
+	"settings.icon_scale.description": "デフォルト（カウンターテキストに対して）のパーセントでアイコンサイズを指定します。"
 }

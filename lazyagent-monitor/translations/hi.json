@@ -16,7 +16,6 @@
 	"widget.disconnected": "डिस्कनेक्ट, पुनः जुड़ रहा है…",
 	"widget.sessions": "सत्र",
 	"widget.none": "कोई नहीं",
-	"widget.active": "सक्रिय",
 	"settings.language.label": "भाषा",
 	"settings.language.description": "विजेट की प्रदर्शन भाषा। 'ऑटो' शेल की भाषा का अनुसरण करता है।",
 	"settings.language.options.auto": "ऑटो",

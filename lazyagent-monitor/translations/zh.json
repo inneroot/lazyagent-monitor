@@ -16,7 +16,6 @@
 	"widget.disconnected": "已断开，正在重新连接…",
 	"widget.sessions": "会话",
 	"widget.none": "无",
-	"widget.active": "活跃",
 	"settings.language.label": "语言",
 	"settings.language.description": "小部件的显示语言。“自动”跟随系统语言。",
 	"settings.language.options.auto": "自动",

@@ -14,6 +14,25 @@ local GLYPH_IDLE = "circle"
 local GLYPH_DOWN = "alert-circle"
 local GLYPH_LOADER = "loader"
 
+-- Agent icons as shown in `lazyagent` TUI (single char per agent). pi → π,
+-- opencode → O. The rest are best-effort placeholders; tweak freely.
+local AGENT_ICONS = {
+	pi = "π",
+	opencode = "O",
+	claude = "✳",
+	codex = "⌘",
+	cursor = "⌃",
+	grok = "𝕏",
+	kimi = "☯",
+	kilo = "k",
+	amp = "A",
+	gemini = "✦",
+}
+local function agentIcon(agent)
+	return AGENT_ICONS[agent]
+		or (type(agent) == "string" and agent ~= "" and agent:sub(1, 1):upper() or "•")
+end
+
 local function setStatus(glyph, glyphColor, text, color)
 	barWidget.setGlyph(glyph)
 	barWidget.setGlyphColor(glyphColor)
@@ -87,19 +106,24 @@ local function renderSnapshot(snap)
 		active and COLOR_ACTIVE or COLOR_IDLE
 	)
 
-	local names = {}
-	for name in pairs(snap.agents or {}) do
-		table.insert(names, name)
+	local sessions = {}
+	for _, s in ipairs(snap.sessions or {}) do
+		table.insert(sessions, s)
 	end
-	table.sort(names)
+	table.sort(sessions, function(a, b)
+		if a.is_active ~= b.is_active then
+			return a.is_active
+		end
+		return (a.short_name or "") < (b.short_name or "")
+	end)
 
 	local rows = {}
-	if #names == 0 then
+	if #sessions == 0 then
 		rows = { { tr("widget.sessions"), tr("widget.none") } }
 	else
-		for _, name in ipairs(names) do
-			local a = snap.agents[name]
-			table.insert(rows, { name, string.format("%d/%d %s", a.active, a.total, tr("widget.active")) })
+		for _, s in ipairs(sessions) do
+			local act = s.activity ~= nil and s.activity ~= "" and s.activity or "idle"
+			table.insert(rows, { agentIcon(s.agent), act })
 		end
 	end
 	barWidget.setTooltip(rows)

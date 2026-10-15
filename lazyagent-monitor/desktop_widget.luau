@@ -1,7 +1,7 @@
 -- lazyagent-monitor desktop widget
 --
--- Read-only tile that mirrors the bar widget: shows agent activity as a
--- color/glyph indicator plus a per-agent breakdown. Desktop widgets have no
+-- Read-only tile that mirrors the bar widget: lists each running session with
+-- its agent icon and status (like the lazyagent TUI). Desktop widgets have no
 -- tooltips, so the breakdown is drawn inline. It only reads noctalia.state
 -- (published by the bridge service); no process control here.
 
@@ -14,6 +14,43 @@ local COLOR_DOWN = "#d97706" -- amber: stream broken
 local GLYPH_ACTIVE = "activity"
 local GLYPH_IDLE = "circle"
 local GLYPH_DOWN = "alert-circle"
+
+local STATUS_COLORS = {
+	idle = "#6B7280",
+	waiting = "#4ADE80",
+	thinking = "#F59E0B",
+	compacting = "#2DD4BF",
+	reading = "#38BDF8",
+	writing = "#FB923C",
+	running = "#A78BFA",
+	searching = "#34D399",
+	browsing = "#22D3EE",
+	spawning = "#F472B6",
+}
+local STATUS_DEFAULT = "#6B7280"
+
+-- Agent icons as shown in `lazyagent` TUI (single char per agent). pi → π,
+-- opencode → O. The rest are best-effort placeholders; tweak freely.
+local AGENT_ICONS = {
+	pi = "π",
+	opencode = "O",
+	claude = "✳",
+	codex = "⌘",
+	cursor = "⌃",
+	grok = "𝕏",
+	kimi = "☯",
+	kilo = "k",
+	amp = "A",
+	gemini = "✦",
+}
+local function agentIcon(agent)
+	return AGENT_ICONS[agent]
+		or (type(agent) == "string" and agent ~= "" and agent:sub(1, 1):upper() or "•")
+end
+
+local function statusColor(status)
+	return STATUS_COLORS[status] or STATUS_DEFAULT
+end
 
 -- Resolve the display language from the `language` setting (same scheme as the
 -- bar widget). "auto" (or unset/invalid) falls back to noctalia.tr(), which
@@ -83,23 +120,25 @@ local function render()
 		}),
 	}
 
-	if status == "connected" and snap ~= nil and type(snap.agents) == "table" then
-		local names = {}
-		for name in pairs(snap.agents) do
-			table.insert(names, name)
+	if status == "connected" and snap ~= nil and type(snap.sessions) == "table" then
+		local sessions = {}
+		for _, s in ipairs(snap.sessions) do
+			table.insert(sessions, s)
 		end
-		table.sort(names)
-
-		for _, name in ipairs(names) do
-			local a = snap.agents[name]
-			local color = a.active > 0 and COLOR_ACTIVE or COLOR_IDLE
-			if a.total > 0 then
-				table.insert(children, ui.row({ gap = 8, align = "center" }, {
-					ui.glyph({ name = GLYPH_IDLE, size = 8, color = color }),
-					ui.label({ text = name, flexGrow = 1 }),
-					ui.label({ text = string.format("%d/%d", a.active, a.total), color = color }),
-				}))
+		table.sort(sessions, function(a, b)
+			if a.is_active ~= b.is_active then
+				return a.is_active
 			end
+			return (a.short_name or "") < (b.short_name or "")
+		end)
+
+		for _, s in ipairs(sessions) do
+			local act = s.activity ~= nil and s.activity ~= "" and s.activity or "idle"
+			local color = statusColor(act)
+			table.insert(children, ui.row({ gap = 8, align = "center" }, {
+				ui.label({ text = agentIcon(s.agent), fontSize = 16, fontWeight = "bold", color = color }),
+				ui.label({ text = act, fontWeight = "bold", color = color }),
+			}))
 		end
 	end
 

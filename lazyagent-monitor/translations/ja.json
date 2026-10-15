@@ -16,7 +16,6 @@
 	"widget.disconnected": "切断されました、再接続中…",
 	"widget.sessions": "セッション",
 	"widget.none": "なし",
-	"widget.active": "アクティブ",
 	"settings.language.label": "言語",
 	"settings.language.description": "ウィジェットの表示言語。「自動」はシェルの言語に従います。",
 	"settings.language.options.auto": "自動",

@@ -16,7 +16,6 @@
 	"widget.disconnected": "отключено, переподключение…",
 	"widget.sessions": "сессии",
 	"widget.none": "нет",
-	"widget.active": "активных",
 	"settings.language.label": "Язык",
 	"settings.language.description": "Язык отображения виджета. «Авто» — как в системе.",
 	"settings.language.options.auto": "Авто",

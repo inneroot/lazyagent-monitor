@@ -16,7 +16,6 @@
 	"widget.disconnected": "getrennt, verbinde erneut…",
 	"widget.sessions": "Sitzungen",
 	"widget.none": "keine",
-	"widget.active": "aktiv",
 	"settings.language.label": "Sprache",
 	"settings.language.description": "Anzeigesprache des Widgets. „Auto“ folgt der Shell-Sprache.",
 	"settings.language.options.auto": "Automatisch",

@@ -174,8 +174,10 @@ local function onLine(line)
 			model = s.model ~= nil and tostring(s.model) or "",
 			cost_usd = type(s.cost_usd) == "number" and s.cost_usd or 0,
 		})
-		local a = agents[s.agent] or { total = 0, active = 0 }
+		local a = agents[s.agent] or { total = 0, active = 0, statuses = {} }
 		a.total += 1
+		local st = tostring(s.activity ~= nil and s.activity or "idle")
+		a.statuses[st] = (a.statuses[st] or 0) + 1
 		if s.is_active == true then
 			a.active += 1
 		end

@@ -16,7 +16,6 @@
 	"widget.disconnected": "desconectado, reconectando…",
 	"widget.sessions": "sessões",
 	"widget.none": "nenhuma",
-	"widget.active": "ativas",
 	"settings.language.label": "Idioma",
 	"settings.language.description": "Idioma de exibição do widget. « Auto » segue o idioma do shell.",
 	"settings.language.options.auto": "Automático",

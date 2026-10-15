@@ -1,85 +1,84 @@
-# План реализации: плагин Noctalia `lazyagent-monitor`
+# Implementation plan: Noctalia plugin `lazyagent-monitor`
 
-> **Статус (15.10, ~17:00): Фазы 1–4 выполнены.** Плагин установлен в
-> Noctalia v5.2.1 по path-source `inner`, включён, виджет в баре.
-> Реальные расхождения, выявленные при интеграции:
-> 1. Path source ожидает подпапку с плагином — файлы перенесены в
->    `lazyagent-monitor/` внутри репозитория.
-> 2. PATH процесса Noctalia не содержит `~/go/bin` → добавлена настройка
->    `lazyagent_bin` (заполнена в `settings.toml`).
-> 3. Токен пользователь ввёл через GUI (заполнен в `settings.toml`),
->    авто-разрешение через `lazyagent passphrase --show` остаётся fallback.
-> 4. Живой конфиг Noctalia — `~/.local/state/noctalia/settings.toml`
->    (GUI periodically rewrite'ит его; `~/.config/noctalia/config.toml` —
->    пустой, дублировать таблицы в нём нельзя).
-> 5. Тест 401 пройден штатно (пользователь сам прописал токен); тест
->    «сервер остановлен» не выполнялся (lazyagent без systemd — risky),
->    кодовая ветка общая с 401-переподключением.
-> 6. Метрики дедупа в логах: ~500 heartbeat'ов отфильтровано при ~10
->    публикациях.
+> **Status (Oct 15, ~17:00): Phases 1–4 done.** The plugin is installed in
+> Noctalia v5.2.1 via path-source `inner`, enabled, widget in the bar.
+> Real discrepancies found during integration:
+> 1. Path source expects a subfolder with the plugin — files moved into
+>    `lazyagent-monitor/` inside the repository.
+> 2. The Noctalia process PATH does not contain `~/go/bin` → added the
+>    `lazyagent_bin` setting (filled in `settings.toml`).
+> 3. The user entered the token via the GUI (filled in `settings.toml`);
+>    auto-resolution via `lazyagent passphrase --show` remains a fallback.
+> 4. The live Noctalia config is `~/.local/state/noctalia/settings.toml`
+>    (the GUI periodically rewrites it; `~/.config/noctalia/config.toml` is
+>    empty — you cannot duplicate tables there).
+> 5. The 401 test passed normally (the user set the token himself); the
+>    "server stopped" test was not run (lazyagent without systemd — risky),
+>    the code path is shared with the 401 reconnect.
+> 6. Dedup metrics in logs: ~500 heartbeats filtered out vs ~10 publications.
 
 
-Плагин для Noctalia Shell v5+ (установлена v5.2.1), отображающий в баре активность
-LLM-агентов через SSE API локального сервиса `lazyagent` (`http://127.0.0.1:7421`,
-сейчас запущен, pid 846374).
+A plugin for Noctalia Shell v5+ (installed v5.2.1) that displays LLM agent activity in
+the bar via the SSE API of the local `lazyagent` service (`http://127.0.0.1:7421`,
+currently running, pid 846374).
 
-Архитектура: `[[service]]` (bridge, SSE-клиент) + `[[widget]]` (бар-виджет),
-обмен только через `noctalia.state` (изоляция VM).
+Architecture: `[[service]]` (bridge, SSE client) + `[[widget]]` (bar widget),
+communication only via `noctalia.state` (VM isolation).
 
 ---
 
-## 1. Факты, проверенные в окружении (15.10)
+## 1. Facts verified in the environment (Oct 15)
 
-| Факт | Значение |
-|------|----------|
-| Noctalia | v5.2.1, `/usr/local/bin/noctalia`, `~/.config/noctalia` пока **нет** |
-| lazyagent | запущен на `127.0.0.1:7421`, исходники в `/home/inner/dev/lazyagent` |
-| `~/.config/lazyagent/config.json` | есть `api_passphrase`, `api_salt`; **нет** `bearer_token` |
-| Токен | выводится PBKDF2-SHA256(passphrase, salt, 600 000 итераций, 32 байта) → base64url без padding (см. `internal/apiauth/derive.go`) |
-| Токен для SSE | только через `?token=<token>` query-параметр (заголовки не поддерживаются) |
-| 401 | `onClose` получает `{ ok = true, status = 401 }` — статус приходит в onClose, тело ошибки идёт в onLine |
+| Fact | Value |
+|------|-------|
+| Noctalia | v5.2.1, `/usr/local/bin/noctalia`, `~/.config/noctalia` **not present** yet |
+| lazyagent | running on `127.0.0.1:7421`, sources in `/home/inner/dev/lazyagent` |
+| `~/.config/lazyagent/config.json` | has `api_passphrase`, `api_salt`; **no** `bearer_token` |
+| Token | derived via PBKDF2-SHA256(passphrase, salt, 600,000 iterations, 32 bytes) → base64url without padding (see `internal/apiauth/derive.go`) |
+| Token for SSE | only via `?token=<token>` query parameter (headers not supported) |
+| 401 | `onClose` receives `{ ok = true, status = 401 }` — the status arrives in onClose, the error body goes to onLine |
 
-## 2. Отклонения от `application_task.md` (исправления по актуальной документации)
+## 2. Deviations from `application_task.md` (corrections per the current documentation)
 
-1. **`noctalia.setTimeout()` не существует.** Планирование на таймере — через
-   `noctalia.setUpdateInterval(1000)` + флаг `nextReconnectMs` и
-   `noctalia.nowMs()` (нужен `plugin_api ≥ 12`).
-2. **Чтение токена из `bearer_token` не работает** — такого поля нет.
-   Порядок разрешения токена (см. §4.2):
-   1. плагин-настройка `token` (пользователь вставил вручную);
+1. **`noctalia.setTimeout()` does not exist.** Timer scheduling is done via
+   `noctalia.setUpdateInterval(1000)` + a `nextReconnectMs` flag and
+   `noctalia.nowMs()` (requires `plugin_api ≥ 12`).
+2. **Reading the token from `bearer_token` does not work** — no such field exists.
+   Token resolution order (see §4.2):
+   1. plugin setting `token` (the user pasted it manually);
    2. `noctalia.runAsync({ "lazyagent", "passphrase", "--show" }, cb)` —
-      подкоманда независима от сервера, печатает текущий токен в stdout;
-   3. поле `bearer_token` из `config.json` (на будущее, если lazyagent его добавит).
-   PBKDF2 в Luau не реализуем (600k итераций — недопустимо дорого для VM плагина).
-3. **Дедупликация по «отпечатку»** из задачи оставляем, но добавляем
-   `last_activity` в отпечаток — иначе виджет «застрянет» на старом состоянии,
-   пока активность не поменяет `activity`/`is_active`.
+      the subcommand is independent of the server, prints the current token to stdout;
+   3. the `bearer_token` field from `config.json` (for the future, if lazyagent adds it).
+   PBKDF2 in Luau is not feasible (600k iterations — prohibitively expensive for the plugin VM).
+3. **Deduplication by "fingerprint"** from the task is kept, but we add
+   `last_activity` to the fingerprint — otherwise the widget would "stick" on the old state
+   until activity changes `activity`/`is_active`.
 
-## 3. Структура плагина
+## 3. Plugin structure
 
 ```
-lazyagent-monitor/                  # == корень этого репозитория (имя = id после "/")
+lazyagent-monitor/                  # == root of this repository (name = id after "/")
   plugin.toml
   service.luau                      # [[service]] id="bridge"
   widget.luau                       # [[widget]] id="monitor"
   README.md
-  translations/en.json              # подписи настроек (обязательно, т.к. есть settings)
-  thumbnail.webp                    # 960×540, только для community — фаза 6
+  translations/en.json              # setting labels (required, since there are settings)
+  thumbnail.webp                    # 960×540, only for community — phase 6
 ```
 
-`plugin.toml` (минимум):
+`plugin.toml` (minimum):
 
 ```toml
 id         = "inner/lazyagent-monitor"
 name       = "Lazyagent Monitor"
 version    = "1.0.0"
-plugin_api = 12                      # nowMs(); httpStream требует 4
+plugin_api = 12                      # nowMs(); httpStream requires 4
 license    = "MIT"
 description= "Displays LLM agent activity from the lazyagent API in the bar"
 tags       = ["llm", "agents", "monitor"]
 dependencies = ["lazyagent"]
 
-[[setting]]                          # plugin-level: общий для service
+[[setting]]                          # plugin-level: shared for service
 key         = "token"
 type        = "string"
 label_key   = "settings.token.label"
@@ -95,70 +94,70 @@ id    = "bridge"
 entry = "service.luau"
 ```
 
-## 4. Фаза 1 — сервис (`service.luau`)
+## 4. Phase 1 — service (`service.luau`)
 
-Топ-левый уровень (инициализация) + `update()` (интервал 1000 мс):
+Top-level (initialization) + `update()` (1000 ms interval):
 
-1. **Разрешение токена** (см. §2.2). Кэшировать в `noctalia.state` под ключом
-   `"token"` вместе с источником; при 401 — сбросить кэш и вычесть заново.
-2. **SSE-подключение**:
+1. **Token resolution** (see §2.2). Cache in `noctalia.state` under the key
+   `"token"` together with its source; on 401 — clear the cache and re-derive.
+2. **SSE connection**:
    ```lua
    stream = noctalia.httpStream({
      url = "http://127.0.0.1:7421/api/events?token=" .. token,
    }, onLine, onClose)
    ```
-3. **Парсинг в `onLine(line)`**:
-   - строки, начинающиеся `data:` — срезать префикс, `noctalia.json.decode`;
-   - `event:` и пустые строки игнорировать;
-   - JSON-ошибку — `noctalia.log`, пропустить строку (не ронять VM).
-4. **Дедупликация (отпечаток)**:
+3. **Parsing in `onLine(line)`**:
+   - lines starting with `data:` — strip the prefix, `noctalia.json.decode`;
+   - `event:` and empty lines are ignored;
+   - JSON error — `noctalia.log`, skip the line (do not crash the VM).
+4. **Deduplication (fingerprint)**:
    ```
-   fp = string.join(сортированные "session_id:activity:is_active:short_name")
+   fp = string.join(sorted "session_id:activity:is_active:short_name")
       .. "|stats:" .. total .. ":" .. active
    ```
-   fp совпадает с предыдущим → не публиковать.
-5. **Публикация** `noctalia.state.set("snapshot", {...})`:
+   fp matches the previous one → do not publish.
+5. **Publishing** `noctalia.state.set("snapshot", {...})`:
    ```lua
    {
      sessions = { { agent, activity, is_active, short_name, model, cost_usd } ... },
      stats    = { total = n, active = m, window_minutes = w },
-     agents   = { ["pi"] = { total = n, active = m }, ... },  -- агрегат по агентам
+     agents   = { ["pi"] = { total = n, active = m }, ... },  -- per-agent aggregate
      receivedAtMs = noctalia.nowMs(),
    }
    ```
-   Значения state — plain data (копируются между VM).
-6. **Переподключение в `onClose(result)`**:
-   - `result.status == 401` → сбросить кэш токена, `noctalia.notifyError`
-     «проверьте токен lazyagent», таймаут повторного подключения 30 с
-     (не спамить) + повторное разрешение токена через `passphrase --show`;
-   - иначе → `nextReconnectMs = nowMs() + 5000`.
-   - В `update()`: если `stream == nil and nowMs() >= nextReconnectMs` —
-     попробовать переподключиться (перепроверив токен при 401-истории).
-   - Перед стартом/переподключением вызывать `stream:stop()` idempotent-но
-     (stop подавляет onClose — защита от дублей).
-7. **Логирование**: `noctalia.log` — подключение, количество опубликованных
-   и пропущенных (dedup) событий, ошибки. Это даст доказательство дедупа
-   при приёмке.
+   State values are plain data (copied between VMs).
+6. **Reconnection in `onClose(result)`**:
+   - `result.status == 401` → clear the token cache, `noctalia.notifyError`
+     "check the lazyagent token", 30 s reconnect timeout
+     (no spamming) + re-resolve the token via `passphrase --show`;
+   - otherwise → `nextReconnectMs = nowMs() + 5000`.
+   - In `update()`: if `stream == nil and nowMs() >= nextReconnectMs` —
+     try to reconnect (re-checking the token if there's 401 history).
+   - Before start/reconnect, call `stream:stop()` idempotently
+     (stop suppresses onClose — protection against duplicates).
+7. **Logging**: `noctalia.log` — connection, number of published
+   and skipped (dedup) events, errors. This gives proof of dedup
+   during acceptance.
 
-## 5. Фаза 2 — виджет (`widget.luau`)
+## 5. Phase 2 — widget (`widget.luau`)
 
-1. Стартовое состояние: `barWidget.setGlyph("robot")` (или "terminal"),
-   `setText("—")`, tooltip «noctalia/lazyagent-monitor: connecting…»
+1. Initial state: `barWidget.setGlyph("robot")` (or "terminal"),
+   `setText("—")`, tooltip "noctalia/lazyagent-monitor: connecting…"
 2. `noctalia.state.watch("snapshot", fn)`:
    - `setText("%d/%d")` — `active/total`;
-   - цвет: `setColor("ok"/"#22C55E")` если active > 0, `setColor("disabled"/серый)`
-     если 0 (роли палитры — проверить в `~/.config/noctalia` при интеграции,
-     fallback на hex);
-   - tooltip: массив строк «pi: 1 active», «opencode: 0 active» + строка
-     `total/active` и окно (`window_minutes`).
-3. Защита от «застывшего» состояния: если `receivedAtMs` старше ~90 с —
-   показать `?` / серый цвет (сервис потерял поток).
+   - color: `setColor("ok"/"#22C55E")` if active > 0, `setColor("disabled"/gray)`
+     if 0 (palette roles — check in `~/.config/noctalia` during integration,
+     fallback to hex);
+   - tooltip: array of strings "pi: 1 active", "opencode: 0 active" + a
+     `total/active` line and the window (`window_minutes`).
+3. Protection against "frozen" state: if `receivedAtMs` is older than ~90 s —
+   show `?` / gray color (the service lost the stream).
 
-## 6. Фаза 3 — локальная интеграция и тесты
+## 6. Phase 3 — local integration and tests
 
-1. Настроить Noctalia (конфига ещё нет, создаётся при первом запуске):
-   - запустить `noctalia` из терминала (логи в консоль);
-   - в `~/.config/noctalia/config.toml`:
+1. Set up Noctalia (no config yet, created on first launch):
+   - run `noctalia` from the terminal (logs to console);
+   - in `~/.config/noctalia/config.toml`:
      ```toml
      [plugins]
      enabled = ["inner/lazyagent-monitor"]
@@ -169,51 +168,51 @@ entry = "service.luau"
      name = "inner"
      location = "/home/inner/dev/lazyagent-monitor"
      ```
-2. В бар добавить виджет `type = "inner/lazyagent-monitor:monitor"`
+2. Add the widget to the bar with `type = "inner/lazyagent-monitor:monitor"`
    (Settings → Bar / plugin settings).
-3. **Матрица тестов** (критерии приёмки):
-   - [ ] плагин виден в Settings → Plugins и включается;
-   - [ ] сервис получает события: в логах `event: update` приходят,
-     виджет показывает `active/total` (проверить curl'ом:
-     `curl -s "http://127.0.0.1:7421/api/sessions"` с токеном из
+3. **Test matrix** (acceptance criteria):
+   - [ ] the plugin is visible in Settings → Plugins and can be enabled;
+   - [ ] the service receives events: `event: update` arrives in logs,
+     the widget shows `active/total` (verify with curl:
+     `curl -s "http://127.0.0.1:7421/api/sessions"` with the token from
      `lazyagent passphrase --show`);
-   - [ ] дедуп: при heartbeat'ах счётчик «published» в логах не растёт;
-   - [ ] tooltip с разбивкой по агентам;
-   - [ ] `kill lazyagent` → через ~5 с сервис переподключается;
-   - [ ] неверный токен (вставить мусор в setting) → 401 → notifyError,
-     нет infinite loop;
-   - [ ] hot reload: правка `.luau` применяется без перезапуска Noctalia.
-4. Проверить в реальном сценарии: запустить pi/opencode-агента, увидеть
-   смену `0/0 → 1/1` и активное состояние.
+   - [ ] dedup: on heartbeats the "published" counter in logs does not grow;
+   - [ ] tooltip with per-agent breakdown;
+   - [ ] `kill lazyagent` → after ~5 s the service reconnects;
+   - [ ] invalid token (paste garbage into the setting) → 401 → notifyError,
+     no infinite loop;
+   - [ ] hot reload: editing `.luau` applies without restarting Noctalia.
+4. Verify in a real scenario: start a pi/opencode agent, see the
+   change `0/0 → 1/1` and the active state.
 
-## 7. Фаза 4 — полировка и docs
+## 7. Phase 4 — polish and docs
 
 - `translations/en.json`: `settings.token.label` = "lazyagent Bearer token",
   `settings.token.description` = "Leave empty to derive automatically via
   `lazyagent passphrase --show`.";
-- `README.md` (корневой): установка, path source, настройка токена,
-  troubleshooting (401, окно 30 мин, hot reload);
-- опционально `icon` в манифесте.
+- `README.md` (root): installation, path source, token setup,
+  troubleshooting (401, 30-minute window, hot reload);
+- optionally `icon` in the manifest.
 
-## 8. Фаза 5 — (опционально, отдельно) публикация в community
+## 8. Phase 5 — (optional, separately) publishing to community
 
-Только по запросу: `thumbnail.webp` 960×540, полный `translations`,
-бамп version, PR в `noctalia-dev/community-plugins` (1 PR = 1 плагин).
+Only on request: `thumbnail.webp` 960×540, full `translations`,
+version bump, PR to `noctalia-dev/community-plugins` (1 PR = 1 plugin).
 
-## 9. Риски
+## 9. Risks
 
-| Риск | Митигация |
-|------|-----------|
-| Роли палитры для `setColor` неизвестны заранее | fallback на hex; проверить в палитре темы при интеграции |
-| `lazyagent passphrase --show` может печатать и предупреждения в stdout | парсить строку, похожую на 43-символьный base64url-токен |
-| SSE-строки могут приходить не по одной строке (chunking) — httpStream даёт onLine на каждую полученную строку, CR срезает рантайм | доверять onLine; не парсить «по буферу» |
-| Токен в URL-строке попадает в логи Noctalia | токен не логируем; в README предупреждение (в lazyagent доках тоже так) |
-| `offline_mode` Noctalia блокирует httpStream | проверить при интеграции, при необходимости — в README |
+| Risk | Mitigation |
+|------|------------|
+| Palette roles for `setColor` are unknown in advance | fallback to hex; check in the theme palette during integration |
+| `lazyagent passphrase --show` may print warnings too, to stdout | parse the line resembling a 43-char base64url token |
+| SSE lines may not arrive one-per-line (chunking) — httpStream gives onLine per received line, CR is stripped by the runtime | trust onLine; do not parse "by buffer" |
+| The token in the URL ends up in Noctalia logs | don't log the token; warn in README (same in lazyagent docs) |
+| Noctalia `offline_mode` blocks httpStream | check during integration, document in README if needed |
 
-## 10. Порядок работы
+## 10. Working order
 
-1. Фаза 1: `plugin.toml` + `service.luau` (ядро).
-2. Фаза 2: `widget.luau`.
-3. Фаза 3: интеграция в Noctalia + прогон матрицы тестов.
-4. Фаза 4: README + переводы + фиксы по результатам тестов.
-5. Фаза 5 — по решению пользователя.
+1. Phase 1: `plugin.toml` + `service.luau` (core).
+2. Phase 2: `widget.luau`.
+3. Phase 3: integration into Noctalia + run the test matrix.
+4. Phase 4: README + translations + fixes from test results.
+5. Phase 5 — at the user's discretion.

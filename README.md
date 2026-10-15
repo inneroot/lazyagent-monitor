@@ -1,141 +1,41 @@
-# Lazyagent Monitor — плагин Noctalia v5
+# Lazyagent Monitor
 
-Показывает в баре Noctalia активность запущенных LLM-агентов (`pi`, `opencode`,
-`claude` и др.) через HTTP API локального сервиса
-[lazyagent](https://lazyagent.dev): компактный счётчик `активных/всего`
-(в цвет primary темы, если есть активность) и разбивку по агентам в tooltip.
+A Noctalia v5 plugin that shows live activity of running LLM agents (`pi`, `opencode`, `claude`, etc.) in the bar. It streams events from the local [lazyagent](https://lazyagent.dev) API over SSE and displays a compact `active/total` counter — colored with your theme's primary when agents are active — plus a per-agent breakdown in the tooltip and a desktop widget.
 
-## Состав
+## Highlights
+
+- **Bar widget + desktop widget** — compact glyph (variants: `robot`, `bot`, custom glyph/SVG) colored by state; no clutter, text is minimal.
+- **SSE bridge service** — connects to `GET /api/events`, parses, deduplicates unchanged heartbeats (no redraws), auto-reconnects on disconnect, and re-resolves the token on 401.
+- **Start/stop the API** — right-click the widget to toggle the local `lazyagent --api` server.
+- **10 languages** (en, ru, de, fr, es, it, pt, zh, ja, hi) and per-widget customization (`language`, `icon_glyph`, `icon_image`, `icon_colorize`).
+
+## Structure
 
 ```
 lazyagent-monitor/
-  plugin.toml          # манифест: [[widget]] monitor + [[desktop_widget]] desktop + [[service]] bridge
-  service.luau         # SSE-клиент: подключение, парсинг, дедупликация, переподключение
-  widget.luau          # бар-виджет: глиф + цвет + tooltip
-  desktop_widget.luau  # desktop-виджет: глиф + цвет + inline-разбивка
-  translations/        # подписи настроек и строк (10 языков: en ru de fr es it pt zh ja hi)
+  plugin.toml          # manifest: monitor widget + desktop widget + bridge service
+  service.luau         # SSE client: connect, parse, dedup, reconnect
+  widget.luau          # bar widget: glyph + color + tooltip
+  desktop_widget.luau  # desktop widget: glyph + color + inline breakdown
+  translations/        # labels/strings in 10 languages
 ```
 
-Сервис и виджеты работают в изолированных VM и обмениваются данными только
-через `noctalia.state` (ключи `snapshot` и `status`).
+Service and widgets run in isolated VMs and communicate only via `noctalia.state` (`snapshot` and `status`).
 
-Индикация — цветом и глифом, текст используется по минимуму:
+## Status indicators
 
-| Состояние | Глиф | Цвет |
-|-----------|------|------|
-| Есть активные агенты | `robot` / свой | primary темы |
-| Подключены, активных нет | `robot` / свой | серый `#8a8f98` |
-| Нет данных | `robot` / свой | серый `#8a8f98` |
-| Поток разорван | `alert-circle` | янтарный `#d97706` |
+| State | Glyph | Color |
+|-------|-------|-------|
+| Agents active | `robot` / custom | theme primary |
+| Connected, none active | `robot` / custom | gray `#8a8f98` |
+| No data | `robot` / custom | gray `#8a8f98` |
+| Stream dropped | `alert-circle` | amber `#d97706` |
 
-> По умолчанию показывается глиф `robot`; свой глиф или SVG задаётся в
-> настройках виджета и desktop-виджета через `icon_glyph` / `icon_image`.
-> Цвет active-состояния — роль `primary` текущей темы Noctalia: глифы и текст
-> красятся хостом, SVG при этом перекрашивается в hex цвета `primary` (если
-> `icon_colorize` включён).
+## Requirements
 
-## Установка
+- **Noctalia v5** (`plugin_api ≥ 31`)
+- **lazyagent** with the API running: `lazyagent --api` (default `http://127.0.0.1:7421`)
 
-### Из локального репозитория (разработка)
+## License
 
-1. Добавьте path-источник в конфиг Noctalia
-   (`~/.config/noctalia/config.toml` или через Settings → Plugins → Sources):
-
-   ```toml
-   [plugins]
-     [[plugins.source]]
-     enabled = true
-     kind = "path"
-     name = "inner"
-     location = "/home/inner/dev/lazyagent-monitor"
-   ```
-
-   > Директория-источник должна содержать **подпапку** с плагином
-   > (`lazyagent-monitor/plugin.toml`), как в репозиториях community/official.
-
-2. Включите плагин: `noctalia msg plugins enable inner/lazyagent-monitor`
-   или Settings → Plugins.
-
-3. Добавьте виджет в бар — в конфиге:
-
-   ```toml
-   [widget.lazyagent_monitor]
-   type = "inner/lazyagent-monitor:monitor"
-   ```
-
-   и вставьте `"lazyagent_monitor"` в список `start`/`end` нужного бара.
-
-4. **Desktop-виджет** (опционально): добавьте его в редакторе desktop-виджетов
-   (`Settings → Desktop widgets → Add → `inner/lazyagent-monitor:desktop``).
-   Позицию и размер задаёте вручную (хост-owned); скрипт рисует только контент.
-
-### Из community-каталога
-
-Плагин появится в каталоге после публикации в
-`noctalia-dev/community-plugins`.
-
-## Зависимости
-
-- Noctalia v5 (plugin_api ≥ 31; `httpStream` требует ≥ 4, `nowMs()` — ≥ 12,
-  argv-формат `runAsync` — ≥ 24, `getColor()` для primary-тона — ≥ 31)
-- `lazyagent` с запущенным API: `lazyagent --api`
-  (по умолчанию `http://127.0.0.1:7421`)
-
-## Настройки
-
-| Настройка | По умолчанию | Описание |
-|-----------|--------------|----------|
-| `token` | пусто | Bearer-токен lazyagent. Пустое значение — выводится автоматически через `lazyagent passphrase --show`. |
-| `lazyagent_bin` | `lazyagent` | Имя или полный путь к бинарнику, видимый из процесса Noctalia (его PATH отличается от PATH вашей shell). |
-| `language` (виджет и desktop) | `auto` | Язык отображения. `auto` — как в системе; иначе код из `en ru de fr es it pt zh ja hi`. |
-| `icon_glyph` (виджет и desktop) | `robot` | Глиф-иконка вместо глифа по состоянию (имя Tabler / Nerd-Font). Пусто — глиф по состояниям (`bot`/`circle`/`alert-circle`). |
-| `icon_image` (виджет и desktop) | пусто | Путь к своему SVG вместо глифа. Пусто — использовать глиф. |
-| `icon_colorize` (виджет и desktop) | `true` | Перекрашивать свой SVG в цвет primary темы, когда активно. `false` — показывать SVG как есть. |
-
-> Настройки `language`, `icon_glyph`, `icon_image`, `icon_colorize` — на уровне
-> виджета (`[[widget.setting]]`) и desktop-виджета (`[[desktop_widget.setting]]`):
-> Settings бара → виджет `lazyagent_monitor` (или Settings → Desktop widgets).
-
-## Как это работает
-
-1. Сервис разрешает токен (настройка → `lazyagent passphrase --show` →
-   `bearer_token` в `config.json`) и открывает SSE-поток
-   `GET /api/events?token=...` (для SSE токен передаётся только query-параметром).
-2. Каждое событие `data: {json}` парсится; «отпечаток» состояния
-   (`session_id:activity:is_active:short_name` по каждой сессии + `stats`)
-   сравнивается с предыдущим — heartbeat'ы без изменений **не публикуются**,
-   виджет не перерисовывается.
-3. При разрыве (`onClose`) сервис переподключается через 5 секунд; при 401 —
-   сбрасывает кэш токена, показывает уведомление и повторяется с интервалом 30 с.
-
-## Запуск `lazyagent --api` из виджета
-
-**Правый клик** по виджету переключает локальный сервер `lazyagent --api`:
-
-- когда процесс не запущен — запускает его (виджет: `checking… → starting…`),
-  после чего сервис сам подключается (≤ 5 с) и возвращает `active/total`;
-- когда процесс запущен — останавливает его (`stopping…`), виджет уходит в `?`.
-
-- Бинарник берётся из настройки `lazyagent_bin` (решает проблему PATH — см.
-  траблшутинг); по умолчанию `lazyagent`.
-- Определение «запущен/остановлен» идёт через `noctalia.processMatches`;
-  старт игнорируется при `status = "connected"` (защита от дублей).
-- Если бинарник не найден на PATH — плагин показывает уведомление
-  «Binary not found» и просит задать `lazyagent_bin` полным путём.
-- После запуска виджет ~8 с не переключается в `?` (grace-period), чтобы
-  `starting…` не мерцал, пока сервер поднимается.
-
-## Траблшутинг
-
-- **Виджет показывает `?`** — поток разорван, сервис переподключается.
-- **Уведомление о 401** — passphrase lazyagent сменён: очистите настройку
-  `token` (или обновите её) — сервис сам перевычислит токен.
-- **`token resolution failed` в логах** — `lazyagent` не найден: укажите
-  полный путь в `lazyagent_bin` (PATH процесса Noctalia не содержит
-  `~/go/bin`).
-- **`failed to execute 'lazyagent'` / клик: `starting… → ?`** — бинарник
-  `lazyagent` не виден процессу Noctalia. Задайте в настройках плагина
-  `lazyagent_bin = /home/inner/go/bin/lazyagent` (или текущий путь из
-  `command -v lazyagent`).
-- Логи: `~/.cache/noctalia/noctalia.log`, тег `[script-runtime]`, префикс
-  `lazyagent-monitor:`.
+MIT

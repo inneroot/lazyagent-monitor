@@ -1,22 +1,22 @@
-Отлично, начнём с локального тестирования через свой репозиторий.
+Great, let's start with local testing through our own repository.
 
-Главное, что нужно понять: **для разработки вам вообще не нужен Git-репозиторий**. Noctalia умеет загружать плагины прямо из локальной папки, что гораздо удобнее для итераций. Git-репозиторий понадобится только когда вы захотите поделиться плагином с другими.
+The main thing to understand: **you don't need a Git repository at all for development**. Noctalia can load plugins directly from a local folder, which is much more convenient for iteration. A Git repository will only be needed when you want to share the plugin with others.
 
-### 🛠️ Настройка локальной разработки
+### 🛠️ Setting up local development
 
-Согласно документации Noctalia v5, самый простой способ — положить плагин в специальную папку и указать путь как `path source`.
+According to the Noctalia v5 documentation, the simplest way is to put the plugin in a special folder and specify the path as a `path source`.
 
-**1. Создайте структуру папок для плагина**
+**1. Create the plugin folder structure**
 
-Допустим, вы назвали плагин `lazyagent-monitor`. Создайте директорию:
+Let's say you named the plugin `lazyagent-monitor`. Create the directory:
 ```bash
 mkdir -p ~/dev/noctalia-plugins/lazyagent-monitor
 ```
-Внутри неё будут лежать `plugin.toml`, `service.luau`, `widget.luau`, `README.md` и `translations/en.json`.
+Inside it will be `plugin.toml`, `service.luau`, `widget.luau`, `README.md`, and `translations/en.json`.
 
-**2. Пропишите плагин в конфиг Noctalia**
+**2. Register the plugin in the Noctalia config**
 
-Откройте `~/.config/noctalia/config.toml` и добавьте секцию для вашего источника и включите плагин:
+Open `~/.config/noctalia/config.toml` and add the section for your source and enable the plugin:
 ```toml
 [plugins]
 enabled = ["inner/lazyagent-monitor"]
@@ -24,82 +24,82 @@ enabled = ["inner/lazyagent-monitor"]
   [[plugins.source]]
   enabled = true
   kind = "path"
-  name = "inner"  # <-- это имя будет частью ID плагина
+  name = "inner"  # <-- this name will be part of the plugin ID
   location = "/home/inner/dev/noctalia-plugins"
 ```
 
-**3. Убедитесь, что `plugin_api` в манифесте корректный**
+**3. Make sure `plugin_api` in the manifest is correct**
 
-В `plugin.toml` обязательно должен быть указан `plugin_api`. Согласно документации, для использования `noctalia.httpStream()` нужен минимум API 4, но лучше указать текущую стабильную версию (например, `plugin_api = 4` или выше, если вы используете фичи из более новых API).
+The `plugin_api` must be specified in `plugin.toml`. According to the documentation, using `noctalia.httpStream()` requires API level 4 at minimum, but it's better to specify the current stable version (e.g., `plugin_api = 4` or higher if you use features from newer APIs).
 
-### 📄 Файл с требованиями к плагину
+### 📄 Plugin requirements file
 
-Я подготовил для вас краткую выжимку требований, которую можно сохранить в `REQUIREMENTS.md` рядом с плагином. Она основана на официальной документации и правилах подачи в community-репозиторий.
+I've prepared a brief summary of requirements for you that you can save as `REQUIREMENTS.md` next to the plugin. It's based on the official documentation and the submission rules for the community repository.
 
 ```markdown
-# Требования к плагину Noctalia v5
+# Noctalia v5 plugin requirements
 
-## Структура и обязательные файлы
+## Structure and required files
 
-- `plugin.toml` (обязательно)
-- Минимум один `.luau` файл с точкой входа (обязательно)
-- `README.md` (рекомендуется, требуется для community)
-- `thumbnail.webp` (требуется для community, размер 960×540)
-- `translations/en.json` (требуется для community)
-- `LICENSE` (если лицензия не MIT)
+- `plugin.toml` (required)
+- At least one `.luau` file with an entry point (required)
+- `README.md` (recommended, required for community)
+- `thumbnail.webp` (required for community, size 960×540)
+- `translations/en.json` (required for community)
+- `LICENSE` (if the license is not MIT)
 
-## Обязательные поля в plugin.toml
+## Required fields in plugin.toml
 
-| Поле | Требование |
-|------|------------|
-| `id` | `<author>/<name>`, уникальный, kebab-case |
-| `name` | Человекочитаемое имя |
-| `version` | Строго `MAJOR.MINOR.PATCH` (semver) |
-| `plugin_api` | Целое число, минимальная требуемая версия API |
-| `author` | Автор/организация |
+| Field | Requirement |
+|-------|-------------|
+| `id` | `<author>/<name>`, unique, kebab-case |
+| `name` | Human-readable name |
+| `version` | Strictly `MAJOR.MINOR.PATCH` (semver) |
+| `plugin_api` | Integer, minimum required API version |
+| `author` | Author/organization |
 
-## Опциональные поля
+## Optional fields
 
-| Поле | Описание |
-|------|----------|
-| `description` | До 120 символов для каталога |
-| `license` | SPDX идентификатор (по умолчанию MIT) |
-| `tags` | Массив тегов для поиска |
-| `icon` | Имя глифа |
-| `dependencies` | Внешние зависимости (для информации) |
-| `deprecated` | `true` если плагин устарел |
+| Field | Description |
+|-------|-------------|
+| `description` | Up to 120 characters for the catalog |
+| `license` | SPDX identifier (default MIT) |
+| `tags` | Array of tags for search |
+| `icon` | Glyph name |
+| `dependencies` | External dependencies (for information) |
+| `deprecated` | `true` if the plugin is deprecated |
 
-## Точки входа (entry points)
+## Entry points
 
-Каждая точка входа описывается отдельной секцией (`[[widget]]`, `[[service]]` и т.д.):
-- `id`: уникальный в пределах плагина
-- `entry`: путь к `.luau` файлу
+Each entry point is described by a separate section (`[[widget]]`, `[[service]]`, etc.):
+- `id`: unique within the plugin
+- `entry`: path to the `.luau` file
 
-Типы точек входа: `widget`, `service`, `shortcut`, `launcher_provider`, `desktop_widget`, `panel`.
+Entry point types: `widget`, `service`, `shortcut`, `launcher_provider`, `desktop_widget`, `panel`.
 
-## Ограничения для community
+## Community restrictions
 
-- Максимум 200 файлов в директории плагина
-- Один PR — один плагин
-- Имя директории должно точно совпадать с частью `id` после `/`
-- `version` должен увеличиваться при каждом изменении
-- CI проверяет манифест, entry-скрипты и обязательные файлы
+- Maximum 200 files in the plugin directory
+- One PR — one plugin
+- The directory name must exactly match the part of `id` after `/`
+- `version` must increase on every change
+- CI validates the manifest, entry scripts, and required files
 ```
 
-### 🔗 Ссылки на официальную документацию
+### 🔗 Links to the official documentation
 
-Вот прямые ссылки на страницы, где описаны все требования (добавьте их в README или храните для справки):
+Here are direct links to the pages describing all the requirements (add them to the README or keep for reference):
 
-| Страница | Что там |
-|----------|---------|
-| [Manifest & Settings](https://docs.noctalia.dev/noctalia/plugins/development/manifest/) | Полное описание `plugin.toml`, типов настроек, формата `plugin_api` |
-| [Plugin Development](https://docs.noctalia.dev/noctalia/plugins/development/) | Обзор системы плагинов и ссылки на все подстраницы |
-| [Workflow & Publishing](https://docs.noctalia.dev/noctalia/plugins/development/workflow/) | Кратко о том, как опубликовать в community-репозиторий |
-| [Using Plugins](https://docs.noctalia.dev/v5/plugins/) | Как добавлять источники, включая локальные `path source` |
-| [community-plugins README](https://github.com/noctalia-dev/community-plugins) | Правила подачи PR (если решите публиковать) |
+| Page | What's there |
+|------|--------------|
+| [Manifest & Settings](https://docs.noctalia.dev/noctalia/plugins/development/manifest/) | Full description of `plugin.toml`, setting types, `plugin_api` format |
+| [Plugin Development](https://docs.noctalia.dev/noctalia/plugins/development/) | Overview of the plugin system and links to all subpages |
+| [Workflow & Publishing](https://docs.noctalia.dev/noctalia/plugins/development/workflow/) | Brief on how to publish to the community repository |
+| [Using Plugins](https://docs.noctalia.dev/v5/plugins/) | How to add sources, including local `path source` |
+| [community-plugins README](https://github.com/noctalia-dev/community-plugins) | PR submission rules (if you decide to publish) |
 
-### 💡 Важное замечание про API для SSE
+### 💡 Important note about the SSE API
 
-В вашем предыдущем коде я предлагал использовать `noctalia.httpStream()`. Убедитесь, что в `plugin.toml` указан `plugin_api`, который поддерживает эту функцию. Согласно документации, `httpStream` доступен начиная с определённого уровня API (вероятно, 4 или выше). Если поставить слишком низкий уровень, функция может быть недоступна.
+In your previous code I suggested using `noctalia.httpStream()`. Make sure the `plugin_api` specified in `plugin.toml` supports this function. According to the documentation, `httpStream` is available starting from a certain API level (likely 4 or higher). If you set a too-low level, the function may be unavailable.
 
-После создания файлов и добавления path source, запустите Noctalia с терминала, чтобы видеть логи, и включите плагин в настройках. Hot reload для path source обычно работает автоматически.
+After creating the files and adding the path source, launch Noctalia from the terminal so you can see the logs, and enable the plugin in settings. Hot reload for path sources usually works automatically.

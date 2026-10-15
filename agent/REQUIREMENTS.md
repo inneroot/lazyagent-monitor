@@ -1,47 +1,47 @@
-# Требования к плагину Noctalia v5
+# Noctalia v5 plugin requirements
 
-## Структура и обязательные файлы
+## Structure and required files
 
-- `plugin.toml` (обязательно)
-- Минимум один `.luau` файл с точкой входа (обязательно)
-- `README.md` (рекомендуется, требуется для community)
-- `thumbnail.webp` (требуется для community, размер 960×540)
-- `translations/en.json` (требуется для community)
-- `LICENSE` (если лицензия не MIT)
+- `plugin.toml` (required)
+- At least one `.luau` file with an entry point (required)
+- `README.md` (recommended, required for community)
+- `thumbnail.webp` (required for community, size 960×540)
+- `translations/en.json` (required for community)
+- `LICENSE` (if the license is not MIT)
 
-## Обязательные поля в plugin.toml
+## Required fields in plugin.toml
 
-| Поле | Требование |
-|------|------------|
-| `id` | `<author>/<name>`, уникальный, kebab-case |
-| `name` | Человекочитаемое имя |
-| `version` | Строго `MAJOR.MINOR.PATCH` (semver) |
-| `plugin_api` | Целое число, минимальная требуемая версия API |
-| `author` | Автор/организация |
+| Field | Requirement |
+|-------|-------------|
+| `id` | `<author>/<name>`, unique, kebab-case |
+| `name` | Human-readable name |
+| `version` | Strictly `MAJOR.MINOR.PATCH` (semver) |
+| `plugin_api` | Integer, minimum required API version |
+| `author` | Author/organization |
 
-## Опциональные поля
+## Optional fields
 
-| Поле | Описание |
-|------|----------|
-| `description` | До 120 символов для каталога |
-| `license` | SPDX идентификатор (по умолчанию MIT) |
-| `tags` | Массив тегов для поиска |
-| `icon` | Имя глифа |
-| `dependencies` | Внешние зависимости (для информации) |
-| `deprecated` | `true` если плагин устарел |
+| Field | Description |
+|-------|-------------|
+| `description` | Up to 120 characters for the catalog |
+| `license` | SPDX identifier (default MIT) |
+| `tags` | Array of tags for search |
+| `icon` | Glyph name |
+| `dependencies` | External dependencies (for information) |
+| `deprecated` | `true` if the plugin is deprecated |
 
-## Точки входа (entry points)
+## Entry points
 
-Каждая точка входа описывается отдельной секцией (`[[widget]]`, `[[service]]` и т.д.):
-- `id`: уникальный в пределах плагина
-- `entry`: путь к `.luau` файлу
+Each entry point is described by a separate section (`[[widget]]`, `[[service]]`, etc.):
+- `id`: unique within the plugin
+- `entry`: path to the `.luau` file
 
-Типы точек входа: `widget`, `service`, `shortcut`, `launcher_provider`, `desktop_widget`, `panel`.
+Entry point types: `widget`, `service`, `shortcut`, `launcher_provider`, `desktop_widget`, `panel`.
 
-## Ограничения для community
+## Community restrictions
 
-- Максимум 200 файлов в директории плагина
-- Один PR — один плагин
-- Имя директории должно точно совпадать с частью `id` после `/`
-- `version` должен увеличиваться при каждом изменении
-- CI проверяет манифест, entry-скрипты и обязательные файлы
+- Maximum 200 files in the plugin directory
+- One PR — one plugin
+- The directory name must exactly match the part of `id` after `/`
+- `version` must increase on every change
+- CI validates the manifest, entry scripts, and required files

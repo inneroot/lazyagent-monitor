@@ -1,39 +1,39 @@
-# Задание для coding agent: Плагин Noctalia для отображения LLM-агентов через lazyagent API
+# Task for coding agent: Noctalia plugin for displaying LLM agents via lazyagent API
 
-## 1. Обзор задачи
+## 1. Task overview
 
-Разработать плагин для Noctalia Shell (v5+), который отображает информацию о запущенных LLM-агентах (pi, opencode и других) через HTTP API сервиса lazyagent. Плагин состоит из двух частей: фонового сервиса, который подключается к SSE-потоку lazyagent и публикует данные в общее состояние плагина, и бар-виджета, который отображает агрегированную статистику.
+Develop a plugin for Noctalia Shell (v5+) that displays information about running LLM agents (pi, opencode, and others) via the HTTP API of the lazyagent service. The plugin consists of two parts: a background service that connects to the lazyagent SSE stream and publishes data to the plugin's shared state, and a bar widget that displays aggregated statistics.
 
-**Целевая среда**: Debian GNU/Linux 13 (trixie), WM niri (Wayland), Noctalia Shell v5+.
-
----
-
-## 2. Архитектура решения
-
-Плагин использует паттерн «service + widget», рекомендованный документацией Noctalia:
-
-| Компонент | Назначение |
-|-----------|------------|
-| `[[service]]` | Подключается к SSE-потоку `/api/events`, парсит события, дедуплицирует и публикует состояние |
-| `[[widget]]` | Читает состояние через `noctalia.state.watch()`, отображает агрегаты в баре |
-
-Разделение обязательно: сервисы и виджеты выполняются в изолированных VM и не разделяют память Lua — обмен только через `noctalia.state`.
+**Target environment**: Debian GNU/Linux 13 (trixie), WM niri (Wayland), Noctalia Shell v5+.
 
 ---
 
-## 3. Источник данных: lazyagent HTTP API
+## 2. Solution architecture
 
-### 3.1 Запуск сервера
+The plugin uses the "service + widget" pattern recommended by the Noctalia documentation:
 
-Сервер уже запущен пользователем: `lazyagent --api` на `http://127.0.0.1:7421`. Аутентификация через Bearer token, который выводится при первом запуске и сохраняется в `~/.config/lazyagent/config.json`.
+| Component | Purpose |
+|-----------|---------|
+| `[[service]]` | Connects to the `/api/events` SSE stream, parses events, deduplicates, and publishes state |
+| `[[widget]]` | Reads state via `noctalia.state.watch()`, displays aggregates in the bar |
 
-### 3.2 SSE-эндпоинт
+The separation is mandatory: services and widgets run in isolated VMs and do not share Lua memory — communication only via `noctalia.state`.
+
+---
+
+## 3. Data source: lazyagent HTTP API
+
+### 3.1 Starting the server
+
+The server is already running by the user: `lazyagent --api` on `http://127.0.0.1:7421`. Authentication via Bearer token, which is printed on first launch and stored in `~/.config/lazyagent/config.json`.
+
+### 3.2 SSE endpoint
 
 **URL**: `GET /api/events`
 
-**Особенность аутентификации для SSE**: заголовок `Authorization: Bearer` **не поддерживается** браузерными EventSource-клиентами, поэтому lazyagent принимает токен через query-параметр `?token=<token>` **только для этого эндпоинта**.
+**Authentication quirk for SSE**: the `Authorization: Bearer` header is **not supported** by browser EventSource clients, so lazyagent accepts the token via the `?token=<token>` query parameter **only for this endpoint**.
 
-**Формат потока** (проверен в реальном терминале пользователя):
+**Stream format** (verified in the user's real terminal):
 ```
 event: update
 data: {"sessions":[...],"stats":{"total_sessions":1,"active_sessions":0,"window_minutes":30}}
@@ -42,44 +42,44 @@ event: update
 data: {...}
 ```
 
-Сервер отправляет полный снимок состояния регулярно (heartbeat), даже если ничего не изменилось.
+The server sends a full state snapshot on a regular basis (heartbeat), even if nothing changed.
 
-### 3.3 Схема данных
+### 3.3 Data schema
 
-**Каждая сессия в массиве `sessions`**:
+**Each session in the `sessions` array**:
 
-| Поле | Тип | Описание |
-|------|-----|----------|
-| `session_id` | string | Уникальный идентификатор сессии |
-| `agent` | string | Имя агента (`pi`, `opencode`, `claude`, и др.) |
-| `cwd` | string | Рабочая директория проекта |
-| `short_name` | string | Короткое имя (обычно путь) |
-| `activity` | string | Состояние: `idle`, `thinking`, `writing`, `running`, `waiting` и др. |
-| `is_active` | boolean | `true` если сессия активна прямо сейчас |
-| `model` | string | Использованная модель |
-| `cost_usd` | number | Оценка стоимости в долларах |
-| `last_activity` | string | ISO 8601 timestamp последней активности |
-| `total_messages` | number | Количество сообщений |
+| Field | Type | Description |
+|-------|------|-------------|
+| `session_id` | string | Unique session identifier |
+| `agent` | string | Agent name (`pi`, `opencode`, `claude`, etc.) |
+| `cwd` | string | Project working directory |
+| `short_name` | string | Short name (usually a path) |
+| `activity` | string | State: `idle`, `thinking`, `writing`, `running`, `waiting`, etc. |
+| `is_active` | boolean | `true` if the session is active right now |
+| `model` | string | Model in use |
+| `cost_usd` | number | Estimated cost in dollars |
+| `last_activity` | string | ISO 8601 timestamp of last activity |
+| `total_messages` | number | Number of messages |
 
-**Блок `stats`**:
+**The `stats` block**:
 
-| Поле | Тип | Описание |
-|------|-----|----------|
-| `total_sessions` | number | Всего сессий в окне |
-| `active_sessions` | number | Активных сессий |
-| `window_minutes` | number | Размер временного окна (по умолчанию 30 минут) |
+| Field | Type | Description |
+|-------|------|-------------|
+| `total_sessions` | number | Total sessions in the window |
+| `active_sessions` | number | Active sessions |
+| `window_minutes` | number | Size of the time window (default 30 minutes) |
 
 ---
 
-## 4. Требования к реализации
+## 4. Implementation requirements
 
 ### 4.1 Manifest (`plugin.toml`)
 
-Обязательные поля: `id`, `name`, `version`, `plugin_api`.
+Required fields: `id`, `name`, `version`, `plugin_api`.
 
-**Минимальный `plugin_api`**: 4 (для `noctalia.httpStream()`).
+**Minimum `plugin_api`**: 4 (for `noctalia.httpStream()`).
 
-**Структура**:
+**Structure**:
 ```toml
 id = "<author>/lazyagent-monitor"
 name = "Lazyagent Monitor"
@@ -98,74 +98,74 @@ id = "bridge"
 entry = "service.luau"
 ```
 
-### 4.2 Сервис (`service.luau`)
+### 4.2 Service (`service.luau`)
 
-**Задачи**:
+**Tasks**:
 
-1. **Чтение конфигурации**: Токен lazyagent хранится в `~/.config/lazyagent/config.json` (поле `bearer_token` или вычисляется из passphrase — уточнить в реальном файле). Читать через `noctalia.readFile()`.
+1. **Reading configuration**: the lazyagent token is stored in `~/.config/lazyagent/config.json` (field `bearer_token`, or derived from the passphrase — verify against the real file). Read via `noctalia.readFile()`.
 
-2. **Подключение к SSE**: Использовать `noctalia.httpStream(request, onLine, onClose)`.
+2. **Connecting to SSE**: use `noctalia.httpStream(request, onLine, onClose)`.
 
-   **Критически важно**: lazyagent принимает токен для SSE через `?token=` query-параметр, потому что EventSource не поддерживает кастомные заголовки. Формат URL:
+   **Critically important**: lazyagent accepts the token for SSE via the `?token=` query parameter, because EventSource does not support custom headers. URL format:
    ```
    http://127.0.0.1:7421/api/events?token=<bearer_token>
    ```
 
-3. **Парсинг потока**: Каждая значимая строка имеет формат `data: {json}`. Строки `event: update` игнорировать. Парсить JSON через `noctalia.json.decode()`.
+3. **Parsing the stream**: each significant line has the format `data: {json}`. Ignore `event: update` lines. Parse JSON via `noctalia.json.decode()`.
 
-4. **Дедупликация (вариант А)**: Вычислять «отпечаток» состояния из ключевых полей (`session_id:activity:is_active` для каждой сессии + `stats.total_sessions:stats.active_sessions`). Сравнивать с предыдущим. Если совпадает — **не публиковать**, не обновлять состояние. Это предотвращает лишние перерисовки виджета при heartbeat-событиях.
+4. **Deduplication (variant A)**: compute a "fingerprint" of the state from key fields (`session_id:activity:is_active` for each session + `stats.total_sessions:stats.active_sessions`). Compare with the previous one. If it matches — **do not publish**, do not update state. This prevents unnecessary widget redraws on heartbeat events.
 
-5. **Публикация состояния**: Через `noctalia.state.set(key, value)`. Ключ, например, `"snapshot"`. Значение — таблица с полями:
-   - `sessions`: массив сессий (только нужные поля для экономии)
+5. **Publishing state**: via `noctalia.state.set(key, value)`. Key, for example, `"snapshot"`. Value — a table with fields:
+   - `sessions`: array of sessions (only needed fields to save space)
    - `stats`: `{total, active, window_minutes}`
-   - `agents`: агрегированный счётчик по агентам `{pi = N, opencode = M, ...}`
+   - `agents`: aggregated per-agent counter `{pi = N, opencode = M, ...}`
 
-6. **Переподключение**: При `onClose` (разрыв соединения, ошибка 401) — переподключаться через `noctalia.setTimeout()` с задержкой 5 секунд. `httpStream` не переподключается автоматически.
+6. **Reconnection**: On `onClose` (connection drop, 401 error) — reconnect via `noctalia.setTimeout()` with a 5-second delay. `httpStream` does not reconnect automatically.
 
-### 4.3 Виджет (`widget.luau`)
+### 4.3 Widget (`widget.luau`)
 
-**Задачи**:
+**Tasks**:
 
-1. **Подписка на состояние**: `noctalia.state.watch("snapshot", callback)`.
+1. **Subscribing to state**: `noctalia.state.watch("snapshot", callback)`.
 
-2. **Отображение в баре**: Использовать `barWidget.setText()` и/или `barWidget.setGlyph()`. Рекомендуемый формат — компактный, например: `● 2/5` (активных/всего) или иконка + число активных.
+2. **Rendering in the bar**: use `barWidget.setText()` and/or `barWidget.setGlyph()`. Recommended format — compact, e.g.: `● 2/5` (active/total) or an icon + number of active.
 
-3. **Цветовая индикация** (опционально, если API поддерживает цвет текста): зелёный при `active > 0`, серый при `active == 0`.
+3. **Color indication** (optional, if the API supports text color): green when `active > 0`, gray when `active == 0`.
 
-4. **Tooltip**: При наведении показывать разбивку по агентам: «pi: 1 active, opencode: 0 active».
+4. **Tooltip**: On hover, show a per-agent breakdown: "pi: 1 active, opencode: 0 active".
 
-5. **Обработка пустого состояния**: Пока сервис не опубликовал первый снимок, показывать `—` или `0`.
-
----
-
-## 5. Ограничения и известные проблемы
-
-| Проблема | Решение |
-|----------|---------|
-| `httpStream` в Noctalia v5 использует нативный HTTP-клиент, но lazyagent требует токен для SSE через query-параметр | Использовать `?token=` в URL для SSE, как документировано в lazyagent |
-| Токен может измениться при перезапуске lazyagent с новой passphrase | Читать `config.json` при каждом переподключении |
-| Сервис и виджет — разные VM | Только `noctalia.state` для обмена данными |
-| `onClose` вызывается при любой ошибке, включая 401 | При status=401 уведомить пользователя о необходимости проверить токен |
+5. **Handling empty state**: Until the service publishes its first snapshot, show `—` or `0`.
 
 ---
 
-## 6. Критерии приёмки
+## 5. Limitations and known issues
 
-- [ ] Плагин появляется в `Settings → Plugins` после установки в `~/.local/share/noctalia/plugins/`
-- [ ] Сервис подключается к `http://127.0.0.1:7421/api/events?token=...` и получает события
-- [ ] Дедупликация работает: виджет не перерисовывается при неизменных данных
-- [ ] Виджет отображает `active/total` в баре
-- [ ] Tooltip показывает разбивку по агентам
-- [ ] При остановке lazyagent сервис переподключается через 5 секунд
-- [ ] При неверном токене (401) сервис логирует ошибку и уведомляет пользователя
-- [ ] Плагин совместим с `plugin_api = 4` (Noctalia v5.0.0-beta.4+)
+| Issue | Solution |
+|-------|----------|
+| `httpStream` in Noctalia v5 uses a native HTTP client, but lazyagent requires the token for SSE via a query parameter | Use `?token=` in the URL for SSE, as documented in lazyagent |
+| The token may change when lazyagent is restarted with a new passphrase | Read `config.json` on every reconnect |
+| Service and widget are separate VMs | Only `noctalia.state` for data exchange |
+| `onClose` fires on any error, including 401 | On status=401, notify the user that the token needs checking |
 
 ---
 
-## 7. Референсы
+## 6. Acceptance criteria
+
+- [ ] The plugin appears in `Settings → Plugins` after installation into `~/.local/share/noctalia/plugins/`
+- [ ] The service connects to `http://127.0.0.1:7421/api/events?token=...` and receives events
+- [ ] Deduplication works: the widget does not redraw on unchanged data
+- [ ] The widget displays `active/total` in the bar
+- [ ] The tooltip shows a per-agent breakdown
+- [ ] When lazyagent stops, the service reconnects after 5 seconds
+- [ ] On an invalid token (401), the service logs the error and notifies the user
+- [ ] The plugin is compatible with `plugin_api = 4` (Noctalia v5.0.0-beta.4+)
+
+---
+
+## 7. References
 
 - **Noctalia Plugin Development**: `https://docs.noctalia.dev/noctalia/plugins/development/`
 - **Runtime API (httpStream, state)**: `https://docs.noctalia.dev/noctalia/plugins/development/runtime-api/`
 - **Plugin API Versions**: `https://docs.noctalia.dev/noctalia/plugins/development/plugin-api/`
 - **lazyagent HTTP API**: `https://lazyagent.dev/docs/interfaces/http-api/`
-- **Пример плагина (ticker service + widget)**: официальный репозиторий `noctalia-dev/official-plugins`, директория `example/`
+- **Example plugin (ticker service + widget)**: official repo `noctalia-dev/official-plugins`, `example/` directory

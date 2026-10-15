@@ -1,6 +1,6 @@
 id         = "inner/lazyagent-monitor"
 name       = "Lazyagent Monitor"
-version    = "1.0.0"
+version    = "1.5.1"
 plugin_api = 24
 license    = "MIT"
 description = "Shows active LLM agents from the local lazyagent API in the bar"
@@ -25,6 +25,50 @@ advanced        = true
 [[widget]]
 id    = "monitor"
 entry = "widget.luau"
+
+  [[widget.setting]]
+  key             = "language"
+  type            = "select"
+  label_key       = "settings.language.label"
+  description_key = "settings.language.description"
+  default         = "auto"
+  options = [
+    { value = "auto", label_key = "settings.language.options.auto" },
+    { value = "en",   label_key = "settings.language.options.en" },
+    { value = "ru",   label_key = "settings.language.options.ru" },
+    { value = "de",   label_key = "settings.language.options.de" },
+    { value = "fr",   label_key = "settings.language.options.fr" },
+    { value = "es",   label_key = "settings.language.options.es" },
+    { value = "it",   label_key = "settings.language.options.it" },
+    { value = "pt",   label_key = "settings.language.options.pt" },
+    { value = "zh",   label_key = "settings.language.options.zh" },
+    { value = "ja",   label_key = "settings.language.options.ja" },
+    { value = "hi",   label_key = "settings.language.options.hi" },
+  ]
+
+[[desktop_widget]]
+id    = "desktop"
+entry = "desktop_widget.luau"
+
+  [[desktop_widget.setting]]
+  key             = "language"
+  type            = "select"
+  label_key       = "settings.language.label"
+  description_key = "settings.language.description"
+  default         = "auto"
+  options = [
+    { value = "auto", label_key = "settings.language.options.auto" },
+    { value = "en",   label_key = "settings.language.options.en" },
+    { value = "ru",   label_key = "settings.language.options.ru" },
+    { value = "de",   label_key = "settings.language.options.de" },
+    { value = "fr",   label_key = "settings.language.options.fr" },
+    { value = "es",   label_key = "settings.language.options.es" },
+    { value = "it",   label_key = "settings.language.options.it" },
+    { value = "pt",   label_key = "settings.language.options.pt" },
+    { value = "zh",   label_key = "settings.language.options.zh" },
+    { value = "ja",   label_key = "settings.language.options.ja" },
+    { value = "hi",   label_key = "settings.language.options.hi" },
+  ]
 
 [[service]]
 id    = "bridge"

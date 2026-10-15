@@ -109,12 +109,14 @@ local function resolveToken(onToken)
 			log("token resolution failed (" .. bin .. "): "
 				.. tostring(result.exitCode) .. " " .. tostring(result.stderr))
 			notifyAuthError()
+			resolving = false
 			nextReconnectMs = now() + AUTH_RETRY_DELAY_MS
 		end
 	end)
 
 	if not started then
 		-- runAsync queue full; retry like a normal reconnect
+		resolving = false
 		nextReconnectMs = now() + RECONNECT_DELAY_MS
 	end
 end

@@ -34,5 +34,7 @@
 	"settings.icon_image.label": "Icône SVG personnalisée",
 	"settings.icon_image.description": "Chemin d'une SVG affichée à la place du glyphe. Laissez vide pour utiliser le glyphe.",
 	"settings.icon_colorize.label": "Teindre l'icône avec la couleur du thème",
-	"settings.icon_colorize.description": "Recolore la SVG personnalisée avec la couleur primaire du thème lorsqu'elle est active. Désactivez pour afficher les couleurs propres de la SVG."
+	"settings.icon_colorize.description": "Recolore la SVG personnalisée avec la couleur primaire du thème lorsqu'elle est active. Désactivez pour afficher les couleurs propres de la SVG.",
+	"settings.compact.label": "Mode compact",
+	"settings.compact.description": "Afficher uniquement l'icône et le compteur actifs/total, sans le détail par session."
 }

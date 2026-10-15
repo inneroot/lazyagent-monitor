@@ -34,5 +34,7 @@
 	"settings.icon_image.label": "Custom SVG icon",
 	"settings.icon_image.description": "Path to an SVG shown instead of the glyph. Leave empty to use the glyph.",
 	"settings.icon_colorize.label": "Tint icon with theme color",
-	"settings.icon_colorize.description": "Recolor the custom SVG with the theme's primary color when active. Turn off to show the SVG's own colors."
+	"settings.icon_colorize.description": "Recolor the custom SVG with the theme's primary color when active. Turn off to show the SVG's own colors.",
+	"settings.compact.label": "Compact mode",
+	"settings.compact.description": "Show only the icon and the active/total counter, without the per-session breakdown."
 }

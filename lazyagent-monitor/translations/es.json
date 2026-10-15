@@ -34,5 +34,7 @@
 	"settings.icon_image.label": "Icono SVG personalizado",
 	"settings.icon_image.description": "Ruta de un SVG mostrado en lugar del glifo. Deja vacío para usar el glifo.",
 	"settings.icon_colorize.label": "Teñir el icono con el color del tema",
-	"settings.icon_colorize.description": "Recolorea el SVG personalizado con el color primario del tema cuando está activo. Desactívalo para mostrar los colores propios del SVG."
+	"settings.icon_colorize.description": "Recolorea el SVG personalizado con el color primario del tema cuando está activo. Desactívalo para mostrar los colores propios del SVG.",
+	"settings.compact.label": "Modo compacto",
+	"settings.compact.description": "Mostrar solo el icono y el contador activos/total, sin el desglose por sesión."
 }

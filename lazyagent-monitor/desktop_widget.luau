@@ -152,7 +152,7 @@ local function render()
 		}),
 	}
 
-	if status == "connected" and snap ~= nil and type(snap.sessions) == "table" then
+	if status == "connected" and snap ~= nil and type(snap.sessions) == "table" and not noctalia.getConfig("compact") then
 		local sessions = {}
 		for _, s in ipairs(snap.sessions) do
 			table.insert(sessions, s)

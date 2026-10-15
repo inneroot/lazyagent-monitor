@@ -34,5 +34,7 @@
 	"settings.icon_image.label": "Icona SVG personalizzata",
 	"settings.icon_image.description": "Percorso di un SVG mostrato al posto del glifo. Lascia vuoto per usare il glifo.",
 	"settings.icon_colorize.label": "Tingi l'icona con il colore del tema",
-	"settings.icon_colorize.description": "Ricolora l'SVG personalizzato con il colore primary del tema quando è attivo. Disattiva per mostrare i colori propri dell'SVG."
+	"settings.icon_colorize.description": "Ricolora l'SVG personalizzato con il colore primary del tema quando è attivo. Disattiva per mostrare i colori propri dell'SVG.",
+	"settings.compact.label": "Modalità compatta",
+	"settings.compact.description": "Mostra solo l'icona e il contatore attivi/totale, senza la ripartizione per sessione."
 }

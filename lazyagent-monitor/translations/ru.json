@@ -34,5 +34,7 @@
 	"settings.icon_image.label": "Своя SVG-иконка",
 	"settings.icon_image.description": "Путь к SVG вместо глифа. Пусто — использовать глиф.",
 	"settings.icon_colorize.label": "Окрасить иконку в цвет темы",
-	"settings.icon_colorize.description": "Перекрасить свою SVG в цвет primary темы, когда активно. Выкл. — показывать собственные цвета SVG."
+	"settings.icon_colorize.description": "Перекрасить свою SVG в цвет primary темы, когда активно. Выкл. — показывать собственные цвета SVG.",
+	"settings.compact.label": "Компактный режим",
+	"settings.compact.description": "Показывать только иконку и счётчик active/total, без разбивки по сессиям."
 }

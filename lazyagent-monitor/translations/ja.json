@@ -34,5 +34,7 @@
 	"settings.icon_image.label": "カスタム SVG アイコン",
 	"settings.icon_image.description": "グリフの代わりに表示する SVG のパス。空にするとグリフを使用します。",
 	"settings.icon_colorize.label": "テーマ色でアイコンを着色",
-	"settings.icon_colorize.description": "アクティブ時にテーマのプライマリ色でカスタム SVG を再配色します。オフで SVG 自身の色を表示します。"
+	"settings.icon_colorize.description": "アクティブ時にテーマのプライマリ色でカスタム SVG を再配色します。オフで SVG 自身の色を表示します。",
+	"settings.compact.label": "コンパクトモード",
+	"settings.compact.description": "セッションごとの内訳を表示せず、アイコンと active/total カウンターだけを表示します。"
 }

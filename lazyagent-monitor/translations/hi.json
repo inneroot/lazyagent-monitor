@@ -34,5 +34,7 @@
 	"settings.icon_image.label": "अपना SVG आइकन",
 	"settings.icon_image.description": "ग्लिफ़ के बजाय दिखाए जाने वाले SVG का पथ। ग्लिफ़ के लिए खाली छोड़ें।",
 	"settings.icon_colorize.label": "आइकन को थीम रंग से रंगें",
-	"settings.icon_colorize.description": "सक्रिय होने पर कस्टम SVG को थीम के प्राथमिक रंग से फिर से रंगें। बंद करने पर SVG के अपने रंग दिखते हैं।"
+	"settings.icon_colorize.description": "सक्रिय होने पर कस्टम SVG को थीम के प्राथमिक रंग से फिर से रंगें। बंद करने पर SVG के अपने रंग दिखते हैं।",
+	"settings.compact.label": "कॉम्पैक्ट मोड",
+	"settings.compact.description": "सत्र-वार विवरण के बिना केवल आइकन और active/total काउंटर दिखाएँ।"
 }

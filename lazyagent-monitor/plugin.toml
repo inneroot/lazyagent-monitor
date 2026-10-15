@@ -114,6 +114,13 @@ entry = "desktop_widget.luau"
   description_key = "settings.icon_colorize.description"
   default         = true
 
+  [[desktop_widget.setting]]
+  key             = "compact"
+  type            = "bool"
+  label_key       = "settings.compact.label"
+  description_key = "settings.compact.description"
+  default         = false
+
 [[service]]
 id    = "bridge"
 entry = "service.luau"

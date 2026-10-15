@@ -34,5 +34,7 @@
 	"settings.icon_image.label": "Benutzerdefiniertes SVG-Icon",
 	"settings.icon_image.description": "Pfad zu einer SVG anstelle des Glyphs. Leer lassen, um das Glyph zu verwenden.",
 	"settings.icon_colorize.label": "Icon mit Themenfarbe färben",
-	"settings.icon_colorize.description": "Die eigene SVG bei Aktivität in die Primärfarbe des Themas färben. Aus, um die eigenen Farben der SVG zu zeigen."
+	"settings.icon_colorize.description": "Die eigene SVG bei Aktivität in die Primärfarbe des Themas färben. Aus, um die eigenen Farben der SVG zu zeigen.",
+	"settings.compact.label": "Kompakter Modus",
+	"settings.compact.description": "Nur das Symbol und den Zähler active/total anzeigen, ohne Aufschlüsselung nach Sitzungen."
 }

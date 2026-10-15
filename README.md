@@ -3,7 +3,7 @@
 Показывает в баре Noctalia активность запущенных LLM-агентов (`pi`, `opencode`,
 `claude` и др.) через HTTP API локального сервиса
 [lazyagent](https://lazyagent.dev): компактный счётчик `активных/всего`
-(зелёный, если есть активность) и разбивку по агентам в tooltip.
+(в цвет primary темы, если есть активность) и разбивку по агентам в tooltip.
 
 ## Состав
 
@@ -23,10 +23,16 @@ lazyagent-monitor/
 
 | Состояние | Глиф | Цвет |
 |-----------|------|------|
-| Есть активные агенты | `activity` | зелёный `#22c55e` |
-| Подключены, активных нет | `circle` | серый `#8a8f98` |
-| Нет данных | `circle` | серый `#8a8f98` |
+| Есть активные агенты | `robot` / свой | primary темы |
+| Подключены, активных нет | `robot` / свой | серый `#8a8f98` |
+| Нет данных | `robot` / свой | серый `#8a8f98` |
 | Поток разорван | `alert-circle` | янтарный `#d97706` |
+
+> По умолчанию показывается глиф `robot`; свой глиф или SVG задаётся в
+> настройках виджета и desktop-виджета через `icon_glyph` / `icon_image`.
+> Цвет active-состояния — роль `primary` текущей темы Noctalia: глифы и текст
+> красятся хостом, SVG при этом перекрашивается в hex цвета `primary` (если
+> `icon_colorize` включён).
 
 ## Установка
 
@@ -70,8 +76,8 @@ lazyagent-monitor/
 
 ## Зависимости
 
-- Noctalia v5 (plugin_api ≥ 24; `httpStream` требует ≥ 4, `nowMs()` — ≥ 12,
-  argv-формат `runAsync` — ≥ 24)
+- Noctalia v5 (plugin_api ≥ 31; `httpStream` требует ≥ 4, `nowMs()` — ≥ 12,
+  argv-формат `runAsync` — ≥ 24, `getColor()` для primary-тона — ≥ 31)
 - `lazyagent` с запущенным API: `lazyagent --api`
   (по умолчанию `http://127.0.0.1:7421`)
 
@@ -82,11 +88,13 @@ lazyagent-monitor/
 | `token` | пусто | Bearer-токен lazyagent. Пустое значение — выводится автоматически через `lazyagent passphrase --show`. |
 | `lazyagent_bin` | `lazyagent` | Имя или полный путь к бинарнику, видимый из процесса Noctalia (его PATH отличается от PATH вашей shell). |
 | `language` (виджет и desktop) | `auto` | Язык отображения. `auto` — как в системе; иначе код из `en ru de fr es it pt zh ja hi`. |
+| `icon_glyph` (виджет и desktop) | `robot` | Глиф-иконка вместо глифа по состоянию (имя Tabler / Nerd-Font). Пусто — глиф по состояниям (`bot`/`circle`/`alert-circle`). |
+| `icon_image` (виджет и desktop) | пусто | Путь к своему SVG вместо глифа. Пусто — использовать глиф. |
+| `icon_colorize` (виджет и desktop) | `true` | Перекрашивать свой SVG в цвет primary темы, когда активно. `false` — показывать SVG как есть. |
 
-> Настройка `language` — на уровне виджета (`[[widget.setting]]`) и
-> desktop-виджета (`[[desktop_widget.setting]]`): Settings бара → виджет
-> `lazyagent_monitor` (или Settings → Desktop widgets). «Auto» следует языку
-> shell; выбранный язык читается напрямую из `translations/<lang>.json`.
+> Настройки `language`, `icon_glyph`, `icon_image`, `icon_colorize` — на уровне
+> виджета (`[[widget.setting]]`) и desktop-виджета (`[[desktop_widget.setting]]`):
+> Settings бара → виджет `lazyagent_monitor` (или Settings → Desktop widgets).
 
 ## Как это работает
 

@@ -28,5 +28,11 @@
 	"settings.language.options.pt": "Português",
 	"settings.language.options.zh": "中文",
 	"settings.language.options.ja": "日本語",
-	"settings.language.options.hi": "हिन्दी"
+	"settings.language.options.hi": "हिन्दी",
+	"settings.icon_glyph.label": "グリフアイコン",
+	"settings.icon_glyph.description": "ウィジェットが表示するグリフ（Tabler / Nerd-Font 名）。空にすると状態別グリフを使用します。",
+	"settings.icon_image.label": "カスタム SVG アイコン",
+	"settings.icon_image.description": "グリフの代わりに表示する SVG のパス。空にするとグリフを使用します。",
+	"settings.icon_colorize.label": "テーマ色でアイコンを着色",
+	"settings.icon_colorize.description": "アクティブ時にテーマのプライマリ色でカスタム SVG を再配色します。オフで SVG 自身の色を表示します。"
 }

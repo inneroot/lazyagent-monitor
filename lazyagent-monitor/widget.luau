@@ -4,12 +4,13 @@
 -- noctalia.state. No HTTP here - the widget only reads shared state.
 
 local state = noctalia.state
+local icon = require("./lib/icon.luau")
 
-local COLOR_ACTIVE = "#22c55e"
+local COLOR_ACTIVE = "primary" -- theme role: resolved by the host at render time
 local COLOR_IDLE = "#8a8f98"
 local COLOR_DOWN = "#d97706" -- amber: stream broken
 
-local GLYPH_ACTIVE = "activity"
+local GLYPH_ACTIVE = "bot"
 local GLYPH_IDLE = "circle"
 local GLYPH_DOWN = "alert-circle"
 local GLYPH_LOADER = "loader"
@@ -40,6 +41,23 @@ local function setStatus(glyph, glyphColor, text, color)
 	barWidget.setColor(color)
 end
 
+-- Show the user-configured icon (glyph or SVG) for a connected state, returning
+-- the color (palette role) the caller should also apply to the text. The SVG is
+-- baked with the active hex so it can be tinted to the theme's primary color.
+local function setConnectedIcon(active)
+	local roleColor = active and COLOR_ACTIVE or COLOR_IDLE
+	local bakeColor = active and icon.activeHex() or COLOR_IDLE
+	local configured = icon.resolveIcon(bakeColor)
+	if configured ~= nil and configured.image ~= nil then
+		barWidget.setImage(configured.image)
+	else
+		local glyph = configured ~= nil and configured.glyph or (active and GLYPH_ACTIVE or GLYPH_IDLE)
+		barWidget.setGlyph(glyph)
+		barWidget.setGlyphColor(roleColor)
+	end
+	return roleColor
+end
+
 -- Keep "starting…" visible instead of flipping to "?" while the just-launched
 -- server is still coming up (the service republishes "disconnected" every 5s).
 local GRACE_MS = 8000
@@ -66,11 +84,15 @@ local function loadLang(lang)
 	return nil
 end
 
-local overrideLang = noctalia.getConfig("language")
 local langTable = nil
-if type(overrideLang) == "string" and overrideLang ~= "" and overrideLang ~= "auto" then
-	langTable = loadLang(overrideLang)
+local function refreshLang()
+	local overrideLang = noctalia.getConfig("language")
+	langTable = nil
+	if type(overrideLang) == "string" and overrideLang ~= "" and overrideLang ~= "auto" then
+		langTable = loadLang(overrideLang)
+	end
 end
+refreshLang()
 
 local function tr(key, subst)
 	if langTable ~= nil then
@@ -88,7 +110,9 @@ local function tr(key, subst)
 end
 
 local function renderIdle()
-	setStatus(GLYPH_IDLE, COLOR_IDLE, "\u{2014}", COLOR_IDLE) -- no data yet
+	local roleColor = setConnectedIcon(false)
+	barWidget.setText("\u{2014}")
+	barWidget.setColor(roleColor)
 	barWidget.setTooltip({ "lazyagent", tr("widget.connecting") })
 end
 
@@ -99,12 +123,9 @@ local function renderSnapshot(snap)
 	local stats = snap.stats
 	local active = stats.active > 0
 
-	setStatus(
-		active and GLYPH_ACTIVE or GLYPH_IDLE,
-		active and COLOR_ACTIVE or COLOR_IDLE,
-		string.format("%d/%d", stats.active, stats.total),
-		active and COLOR_ACTIVE or COLOR_IDLE
-	)
+	local roleColor = setConnectedIcon(active)
+	barWidget.setText(string.format("%d/%d", stats.active, stats.total))
+	barWidget.setColor(roleColor)
 
 	local sessions = {}
 	for _, s in ipairs(snap.sessions or {}) do
@@ -134,7 +155,7 @@ local function renderStatus(statusValue)
 		if noctalia.nowMs() < pendingStartUntilMs then
 			return -- in the grace window after a start; keep "starting…"
 		end
-		setStatus(GLYPH_DOWN, COLOR_DOWN, "?", COLOR_DOWN)
+		setStatus(GLYPH_DOWN, COLOR_DOWN, "", COLOR_DOWN)
 		barWidget.setTooltip({ "lazyagent", tr("widget.disconnected") })
 	elseif statusValue == "connected" then
 		renderSnapshot(state.get("snapshot"))
@@ -161,14 +182,14 @@ end
 -- process is running, otherwise start it. Right-click only fires for gestures
 -- nobody has bound, so this stays clickable by default.
 function onRightClick()
-	setStatus(GLYPH_LOADER, COLOR_IDLE, tr("widget.checking"), COLOR_IDLE)
+	setStatus(GLYPH_LOADER, COLOR_IDLE, "", COLOR_IDLE)
 	noctalia.processMatches(function(matched)
 		if matched then
 			-- Running → STOP. runAsync gives no PID, so kill by pattern.
 			pendingStartUntilMs = 0
 			local ok = noctalia.runAsync({ "pkill", "-f", "lazyagent --api" })
 			if ok then
-				setStatus(GLYPH_LOADER, COLOR_IDLE, tr("widget.stopping"), COLOR_IDLE)
+				setStatus(GLYPH_LOADER, COLOR_IDLE, "", COLOR_IDLE)
 				barWidget.setTooltip({ "lazyagent", tr("widget.tooltip_stopping") })
 			else
 				noctalia.notifyError("lazyagent-monitor", tr("widget.stop_failed"))
@@ -196,11 +217,18 @@ function onRightClick()
 		local ok = noctalia.runAsync({ bin, "--api" })
 		if ok then
 			pendingStartUntilMs = noctalia.nowMs() + GRACE_MS
-			setStatus(GLYPH_LOADER, COLOR_ACTIVE, tr("widget.starting"), COLOR_ACTIVE)
+			setStatus(GLYPH_LOADER, COLOR_ACTIVE, "", COLOR_ACTIVE)
 			barWidget.setTooltip({ "lazyagent", tr("widget.tooltip_starting") })
 		else
 			noctalia.notifyError("lazyagent-monitor", tr("widget.start_failed", { bin = bin }))
 			renderStatus(state.get("status"))
 		end
 	end, "lazyagent")
+end
+
+-- Settings changed (icon, language, …): re-resolve and re-render in place so
+-- icon-glyph/image/colorize and language changes apply without an entry reload.
+function onConfigChanged()
+	refreshLang()
+	renderStatus(state.get("status"))
 end

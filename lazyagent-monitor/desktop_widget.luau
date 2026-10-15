@@ -6,8 +6,9 @@
 -- (published by the bridge service); no process control here.
 
 local state = noctalia.state
+local icon = require("./lib/icon.luau")
 
-local COLOR_ACTIVE = "#22c55e"
+local COLOR_ACTIVE = "primary" -- theme role: resolved by the host at render time
 local COLOR_IDLE = "#8a8f98"
 local COLOR_DOWN = "#d97706" -- amber: stream broken
 
@@ -72,11 +73,15 @@ local function loadLang(lang)
 	return nil
 end
 
-local overrideLang = noctalia.getConfig("language")
 local langTable = nil
-if type(overrideLang) == "string" and overrideLang ~= "" and overrideLang ~= "auto" then
-	langTable = loadLang(overrideLang)
+local function refreshLang()
+	local overrideLang = noctalia.getConfig("language")
+	langTable = nil
+	if type(overrideLang) == "string" and overrideLang ~= "" and overrideLang ~= "auto" then
+		langTable = loadLang(overrideLang)
+	end
 end
+refreshLang()
 
 local function tr(key, subst)
 	if langTable ~= nil then
@@ -97,25 +102,39 @@ local function render()
 	local status = state.get("status")
 	local snap = state.get("snapshot")
 
-	local headerGlyph, headerColor, headerText
+	-- Build the header icon node; a user-configured icon (custom SVG tinted to the
+	-- active color, or a custom glyph) is used only for the connected state, so the
+	-- disconnected / no-data states keep their semantic glyphs.
+	local function headerIcon(active, defaultGlyph)
+		local roleColor = active and COLOR_ACTIVE or COLOR_IDLE
+		local bakeColor = active and icon.activeHex() or COLOR_IDLE
+		local configured = icon.resolveIcon(bakeColor)
+		if configured ~= nil and configured.image ~= nil then
+			return ui.image({ path = configured.image, width = 18, height = 18 })
+		end
+		local glyph = configured ~= nil and configured.glyph or defaultGlyph
+		return ui.glyph({ name = glyph, size = 18, color = roleColor })
+	end
+
+	local headerNode, headerColor, headerText
 	if status == "connected" and snap ~= nil and snap.stats ~= nil then
 		local hasActive = snap.stats.active > 0
-		headerGlyph = hasActive and GLYPH_ACTIVE or GLYPH_IDLE
 		headerColor = hasActive and COLOR_ACTIVE or COLOR_IDLE
+		headerNode = headerIcon(hasActive, hasActive and GLYPH_ACTIVE or GLYPH_IDLE)
 		headerText = string.format("%d/%d", snap.stats.active, snap.stats.total)
 	elseif status == "disconnected" then
-		headerGlyph = GLYPH_DOWN
+		headerNode = ui.glyph({ name = GLYPH_DOWN, size = 18, color = COLOR_DOWN })
 		headerColor = COLOR_DOWN
 		headerText = "?"
 	else
-		headerGlyph = GLYPH_IDLE
+		headerNode = headerIcon(false, GLYPH_IDLE)
 		headerColor = COLOR_IDLE
 		headerText = "\u{2014}"
 	end
 
 	local children = {
 		ui.row({ gap = 8, align = "center" }, {
-			ui.glyph({ name = headerGlyph, size = 18, color = headerColor }),
+			headerNode,
 			ui.label({ text = headerText, fontSize = 22, fontWeight = "bold", color = headerColor }),
 		}),
 	}
@@ -148,3 +167,10 @@ end
 state.watch("snapshot", render)
 state.watch("status", render)
 render()
+
+-- Settings changed (icon, language, …): re-resolve and re-render so
+-- icon-glyph/image/colorize and language changes apply without an entry reload.
+function onConfigChanged()
+	refreshLang()
+	render()
+end

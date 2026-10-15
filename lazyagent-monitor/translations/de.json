@@ -28,5 +28,11 @@
 	"settings.language.options.pt": "Português",
 	"settings.language.options.zh": "中文",
 	"settings.language.options.ja": "日本語",
-	"settings.language.options.hi": "हिन्दी"
+	"settings.language.options.hi": "हिन्दी",
+	"settings.icon_glyph.label": "Glyph-Icon",
+	"settings.icon_glyph.description": "Vom Widget angezeigtes Glyph (Tabler-/Nerd-Font-Name). Leer lassen, um das Status-Glyph zu verwenden.",
+	"settings.icon_image.label": "Benutzerdefiniertes SVG-Icon",
+	"settings.icon_image.description": "Pfad zu einer SVG anstelle des Glyphs. Leer lassen, um das Glyph zu verwenden.",
+	"settings.icon_colorize.label": "Icon mit Themenfarbe färben",
+	"settings.icon_colorize.description": "Die eigene SVG bei Aktivität in die Primärfarbe des Themas färben. Aus, um die eigenen Farben der SVG zu zeigen."
 }

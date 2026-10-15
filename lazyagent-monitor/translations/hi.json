@@ -28,5 +28,11 @@
 	"settings.language.options.pt": "Português",
 	"settings.language.options.zh": "中文",
 	"settings.language.options.ja": "日本語",
-	"settings.language.options.hi": "हिन्दी"
+	"settings.language.options.hi": "हिन्दी",
+	"settings.icon_glyph.label": "ग्लिफ़ आइकन",
+	"settings.icon_glyph.description": "विजेट द्वारा दिखाया गया ग्लिफ़ (Tabler / Nerd-Font नाम)। अवस्था-आधारित ग्लिफ़ के लिए खाली छोड़ें।",
+	"settings.icon_image.label": "अपना SVG आइकन",
+	"settings.icon_image.description": "ग्लिफ़ के बजाय दिखाए जाने वाले SVG का पथ। ग्लिफ़ के लिए खाली छोड़ें।",
+	"settings.icon_colorize.label": "आइकन को थीम रंग से रंगें",
+	"settings.icon_colorize.description": "सक्रिय होने पर कस्टम SVG को थीम के प्राथमिक रंग से फिर से रंगें। बंद करने पर SVG के अपने रंग दिखते हैं।"
 }

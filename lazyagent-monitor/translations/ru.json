@@ -28,5 +28,11 @@
 	"settings.language.options.pt": "Português",
 	"settings.language.options.zh": "中文",
 	"settings.language.options.ja": "日本語",
-	"settings.language.options.hi": "हिन्दी"
+	"settings.language.options.hi": "हिन्दी",
+	"settings.icon_glyph.label": "Глиф-иконка",
+	"settings.icon_glyph.description": "Глиф, который показывает виджет (имя Tabler / Nerd-Font). Пусто — глиф по состоянию.",
+	"settings.icon_image.label": "Своя SVG-иконка",
+	"settings.icon_image.description": "Путь к SVG вместо глифа. Пусто — использовать глиф.",
+	"settings.icon_colorize.label": "Окрасить иконку в цвет темы",
+	"settings.icon_colorize.description": "Перекрасить свою SVG в цвет primary темы, когда активно. Выкл. — показывать собственные цвета SVG."
 }

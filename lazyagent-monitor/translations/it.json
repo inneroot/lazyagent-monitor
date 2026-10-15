@@ -28,5 +28,11 @@
 	"settings.language.options.pt": "Português",
 	"settings.language.options.zh": "中文",
 	"settings.language.options.ja": "日本語",
-	"settings.language.options.hi": "हिन्दी"
+	"settings.language.options.hi": "हिन्दी",
+	"settings.icon_glyph.label": "Icona glifo",
+	"settings.icon_glyph.description": "Glifo mostrato dal widget (nome Tabler / Nerd-Font). Lascia vuoto per usare il glifo per stato.",
+	"settings.icon_image.label": "Icona SVG personalizzata",
+	"settings.icon_image.description": "Percorso di un SVG mostrato al posto del glifo. Lascia vuoto per usare il glifo.",
+	"settings.icon_colorize.label": "Tingi l'icona con il colore del tema",
+	"settings.icon_colorize.description": "Ricolora l'SVG personalizzato con il colore primary del tema quando è attivo. Disattiva per mostrare i colori propri dell'SVG."
 }

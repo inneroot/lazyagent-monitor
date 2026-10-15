@@ -28,5 +28,11 @@
 	"settings.language.options.pt": "Português",
 	"settings.language.options.zh": "中文",
 	"settings.language.options.ja": "日本語",
-	"settings.language.options.hi": "हिन्दी"
+	"settings.language.options.hi": "हिन्दी",
+	"settings.icon_glyph.label": "字形图标",
+	"settings.icon_glyph.description": "小组件显示的字形（Tabler / Nerd-Font 名称）。留空以使用按状态的字形。",
+	"settings.icon_image.label": "自定义 SVG 图标",
+	"settings.icon_image.description": "替代字形显示的 SVG 路径。留空以使用字形。",
+	"settings.icon_colorize.label": "用主题色为图标着色",
+	"settings.icon_colorize.description": "激活时用主题的主色重染自定义 SVG。关闭则显示 SVG 自身的颜色。"
 }

@@ -1,7 +1,7 @@
 id         = "inner/lazyagent-monitor"
 name       = "Lazyagent Monitor"
-version    = "1.5.1"
-plugin_api = 24
+version    = "1.6.0"
+plugin_api = 31
 license    = "MIT"
 description = "Shows active LLM agents from the local lazyagent API in the bar"
 tags       = ["llm", "agents", "monitor"]
@@ -46,6 +46,28 @@ entry = "widget.luau"
     { value = "hi",   label_key = "settings.language.options.hi" },
   ]
 
+  [[widget.setting]]
+  key             = "icon_glyph"
+  type            = "glyph"
+  label_key       = "settings.icon_glyph.label"
+  description_key = "settings.icon_glyph.description"
+  default         = "robot"
+
+  [[widget.setting]]
+  key             = "icon_image"
+  type            = "file"
+  label_key       = "settings.icon_image.label"
+  description_key = "settings.icon_image.description"
+  default         = ""
+  extensions      = [".svg"]
+
+  [[widget.setting]]
+  key             = "icon_colorize"
+  type            = "bool"
+  label_key       = "settings.icon_colorize.label"
+  description_key = "settings.icon_colorize.description"
+  default         = true
+
 [[desktop_widget]]
 id    = "desktop"
 entry = "desktop_widget.luau"
@@ -69,6 +91,28 @@ entry = "desktop_widget.luau"
     { value = "ja",   label_key = "settings.language.options.ja" },
     { value = "hi",   label_key = "settings.language.options.hi" },
   ]
+
+  [[desktop_widget.setting]]
+  key             = "icon_glyph"
+  type            = "glyph"
+  label_key       = "settings.icon_glyph.label"
+  description_key = "settings.icon_glyph.description"
+  default         = "robot"
+
+  [[desktop_widget.setting]]
+  key             = "icon_image"
+  type            = "file"
+  label_key       = "settings.icon_image.label"
+  description_key = "settings.icon_image.description"
+  default         = ""
+  extensions      = [".svg"]
+
+  [[desktop_widget.setting]]
+  key             = "icon_colorize"
+  type            = "bool"
+  label_key       = "settings.icon_colorize.label"
+  description_key = "settings.icon_colorize.description"
+  default         = true
 
 [[service]]
 id    = "bridge"

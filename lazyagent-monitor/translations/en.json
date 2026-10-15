@@ -1,0 +1,6 @@
+{
+	"settings.token.label": "lazyagent bearer token",
+	"settings.token.description": "Leave empty to derive it automatically from `lazyagent passphrase --show`. Set it manually if the lazyagent binary is not on PATH.",
+	"settings.lazyagent_bin.label": "lazyagent binary",
+	"settings.lazyagent_bin.description": "Name or full path of the lazyagent executable, as seen from the Noctalia process (its PATH may differ from your shell)."
+}

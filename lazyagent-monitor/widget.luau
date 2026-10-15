@@ -44,14 +44,14 @@ end
 -- Show the user-configured icon (glyph or SVG) for a connected state, returning
 -- the color (palette role) the caller should also apply to the text. The SVG is
 -- baked with the active hex so it can be tinted to the theme's primary color.
-local function setConnectedIcon(active)
-	local roleColor = active and COLOR_ACTIVE or COLOR_IDLE
-	local bakeColor = active and icon.activeHex() or COLOR_IDLE
+local function setConnectedIcon(active, waiting)
+	local roleColor = waiting and "secondary" or (active and COLOR_ACTIVE or COLOR_IDLE)
+	local bakeColor = waiting and icon.secondaryHex() or (active and icon.activeHex() or COLOR_IDLE)
 	local configured = icon.resolveIcon(bakeColor)
 	if configured ~= nil and configured.image ~= nil then
 		barWidget.setImage(configured.image)
 	else
-		local glyph = configured ~= nil and configured.glyph or (active and GLYPH_ACTIVE or GLYPH_IDLE)
+		local glyph = configured ~= nil and configured.glyph or ((active or waiting) and GLYPH_ACTIVE or GLYPH_IDLE)
 		barWidget.setGlyph(glyph)
 		barWidget.setGlyphColor(roleColor)
 	end
@@ -110,7 +110,7 @@ local function tr(key, subst)
 end
 
 local function renderIdle()
-	local roleColor = setConnectedIcon(false)
+	local roleColor = setConnectedIcon(false, false)
 	barWidget.setText("\u{2014}")
 	barWidget.setColor(roleColor)
 	barWidget.setTooltip({ "lazyagent", tr("widget.connecting") })
@@ -123,7 +123,15 @@ local function renderSnapshot(snap)
 	local stats = snap.stats
 	local active = stats.active > 0
 
-	local roleColor = setConnectedIcon(active)
+	local hasWaiting = false
+	for _, s in ipairs(snap.sessions or {}) do
+		if s.activity == "waiting" then
+			hasWaiting = true
+			break
+		end
+	end
+
+	local roleColor = setConnectedIcon(active, hasWaiting)
 	barWidget.setText(string.format("%d/%d", stats.active, stats.total))
 	barWidget.setColor(roleColor)
 
